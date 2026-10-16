@@ -79,7 +79,44 @@ export const candidateProfiles = pgTable("candidate_profiles", {
     .defaultNow(),
 });
 
+/**
+ * One analysis row per job. Re-running analysis upserts this record.
+ */
+export const jobAnalyses = pgTable("job_analyses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  jobId: uuid("job_id")
+    .notNull()
+    .references(() => jobs.id, { onDelete: "cascade" })
+    .unique(),
+  matchScore: integer("match_score").notNull(),
+  matchingSkills: text("matching_skills").array().notNull().default([]),
+  missingSkills: text("missing_skills").array().notNull().default([]),
+  requiredQualifications: text("required_qualifications")
+    .array()
+    .notNull()
+    .default([]),
+  preferredQualifications: text("preferred_qualifications")
+    .array()
+    .notNull()
+    .default([]),
+  seniorityCompatibility: text("seniority_compatibility").notNull(),
+  concerns: text("concerns").array().notNull().default([]),
+  uncertainties: text("uncertainties").array().notNull().default([]),
+  explanation: text("explanation").notNull(),
+  cvSuggestions: text("cv_suggestions").array().notNull().default([]),
+  provider: varchar("provider", { length: 50 }).notNull(),
+  model: varchar("model", { length: 120 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type JobRow = typeof jobs.$inferSelect;
 export type NewJobRow = typeof jobs.$inferInsert;
 export type CandidateProfileRow = typeof candidateProfiles.$inferSelect;
 export type NewCandidateProfileRow = typeof candidateProfiles.$inferInsert;
+export type JobAnalysisRow = typeof jobAnalyses.$inferSelect;
+

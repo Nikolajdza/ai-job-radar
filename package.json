@@ -16,6 +16,8 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.95",
+    "ai": "^7.0.142",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.2",
     "postgres": "^3.4.9",

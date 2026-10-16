@@ -25,7 +25,7 @@ export function handleRouteError(error: unknown) {
   }
 
   if (error instanceof Error) {
-    if (error.name === "JobConflictError") {
+    if (error.name === "JobConflictError" || error.name === "AnalysisInProgressError") {
       return jsonError(error.message, 409);
     }
     if (
@@ -34,12 +34,25 @@ export function handleRouteError(error: unknown) {
     ) {
       return jsonError(error.message, 404);
     }
+    if (
+      error.name === "AiTimeoutError" ||
+      error.name === "AiRateLimitError" ||
+      error.name === "AiValidationError" ||
+      error.name === "AiProviderError"
+    ) {
+      const statusCode =
+        "statusCode" in error && typeof error.statusCode === "number"
+          ? error.statusCode
+          : 502;
+      return jsonError(error.message, statusCode);
+    }
 
-    if (error.message.startsWith("Invalid environment:")) {
-      return jsonError(
-        "Database is not configured. Copy .env.example to .env.local and start Postgres.",
-        503,
-      );
+    if (
+      error.message.startsWith("Invalid environment:") ||
+      error.message.startsWith("Invalid AI environment:") ||
+      error.message.includes("AI_PROVIDER=openai requires")
+    ) {
+      return jsonError(error.message, 503);
     }
   }
 

@@ -4,8 +4,10 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/dashboard/app-header";
 import { MatchScore } from "@/components/dashboard/match-score";
+import { JobAnalysisPanel } from "@/components/jobs/job-analysis-panel";
 import { JobNotesForm } from "@/components/jobs/job-notes-form";
 import { StatusSelect } from "@/components/jobs/status-select";
+import { getAnalysisForJob } from "@/lib/ai/service";
 import { getJobById } from "@/lib/jobs/service";
 import { WORK_FORMAT_LABELS } from "@/lib/types/job";
 
@@ -42,6 +44,8 @@ async function JobDetailContent({
   if (!job) {
     notFound();
   }
+
+  const analysis = await getAnalysisForJob(id);
 
   return (
     <>
@@ -84,6 +88,8 @@ async function JobDetailContent({
           </div>
         </div>
       </section>
+
+      <JobAnalysisPanel jobId={job.id} initialAnalysis={analysis} />
 
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-slate-900">Description</h3>

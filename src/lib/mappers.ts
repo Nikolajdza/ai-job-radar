@@ -1,4 +1,9 @@
-import type { CandidateProfileRow, JobRow } from "@/lib/db/schema";
+import type { StoredJobAnalysis } from "@/lib/ai/schema";
+import type {
+  CandidateProfileRow,
+  JobAnalysisRow,
+  JobRow,
+} from "@/lib/db/schema";
 import type { JobListing, WorkFormat } from "@/lib/types/job";
 import type { CandidateProfile } from "@/lib/types/profile";
 
@@ -32,6 +37,27 @@ export function mapProfileRow(row: CandidateProfileRow): CandidateProfile {
     locationPreferences: row.locationPreferences ?? [],
     workFormatPreferences: (row.workFormatPreferences ?? []) as WorkFormat[],
     salaryExpectation: row.salaryExpectation,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export function mapAnalysisRow(row: JobAnalysisRow): StoredJobAnalysis {
+  return {
+    id: row.id,
+    jobId: row.jobId,
+    matchScore: row.matchScore,
+    matchingSkills: row.matchingSkills ?? [],
+    missingSkills: row.missingSkills ?? [],
+    requiredQualifications: row.requiredQualifications ?? [],
+    preferredQualifications: row.preferredQualifications ?? [],
+    seniorityCompatibility: row.seniorityCompatibility,
+    concerns: row.concerns ?? [],
+    uncertainties: row.uncertainties ?? [],
+    explanation: row.explanation,
+    cvSuggestions: row.cvSuggestions ?? [],
+    provider: row.provider,
+    model: row.model,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
