@@ -1,0 +1,134 @@
+{
+  "name": "AI Job Radar — Job Ingest",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"title\": \"TypeScript Engineer (AI Products)\",\n  \"company\": \"Signal Forge\",\n  \"location\": \"Remote (EU)\",\n  \"workFormat\": \"remote\",\n  \"salary\": \"€72k–€92k\",\n  \"description\": \"Build product features with React, Next.js, and TypeScript. You will integrate LLM APIs with structured outputs, collaborate on API design with Node.js services, and help ship reliable AI-assisted workflows. PostgreSQL experience and solid testing habits are expected.\",\n  \"sourceUrl\": \"https://example.com/jobs/signal-forge-typescript-ai\",\n  \"saved\": true,\n  \"analyze\": true,\n  \"forceAnalyze\": false\n}",
+        "options": {}
+      },
+      "id": "sample-job",
+      "name": "Sample Job Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/api/webhooks/jobs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-webhook-secret",
+              "value": "dev-n8n-secret-change-me"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "persist-analyze",
+      "name": "Persist + Analyze",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 0],
+      "notesInFlow": true,
+      "notes": "Header x-webhook-secret must match N8N_WEBHOOK_SECRET in .env.local. URL uses host.docker.internal so the n8n container can reach Next.js on the host."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "strong-match",
+              "leftValue": "={{ $json.strongMatch }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-strong-match",
+      "name": "Strong Match?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [780, 0]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"notification\": \"Strong match\",\n  \"title\": $json.job.title,\n  \"company\": $json.job.company,\n  \"score\": $json.job.matchScore,\n  \"jobId\": $json.job.id,\n  \"note\": \"Local stub only — no email/Slack is sent automatically.\"\n}",
+        "options": {}
+      },
+      "id": "notify-stub",
+      "name": "Local Notification Stub",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1040, -120]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"notification\": \"Skipped\",\n  \"reason\": \"Score below strong-match threshold or request failed\",\n  \"duplicatePrevented\": $json.duplicatePrevented,\n  \"created\": $json.created\n}",
+        "options": {}
+      },
+      "id": "skip-notify",
+      "name": "No Notification",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1040, 120]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Sample Job Payload", "type": "main", "index": 0 }]]
+    },
+    "Sample Job Payload": {
+      "main": [[{ "node": "Persist + Analyze", "type": "main", "index": 0 }]]
+    },
+    "Persist + Analyze": {
+      "main": [[{ "node": "Strong Match?", "type": "main", "index": 0 }]]
+    },
+    "Strong Match?": {
+      "main": [
+        [{ "node": "Local Notification Stub", "type": "main", "index": 0 }],
+        [{ "node": "No Notification", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

@@ -34,6 +34,43 @@ export async function getJobById(id: string): Promise<JobListing | null> {
   return row ? mapJobRow(row) : null;
 }
 
+export async function getJobByDedupeKey(
+  dedupeKey: string,
+): Promise<JobListing | null> {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(jobs)
+    .where(eq(jobs.dedupeKey, dedupeKey))
+    .limit(1);
+  return row ? mapJobRow(row) : null;
+}
+
+/** Create a job, or return the existing one when the dedupe key already exists. */
+export async function createJobIdempotent(
+  input: CreateJobInput,
+): Promise<{ job: JobListing; created: boolean }> {
+  try {
+    const job = await createJob(input);
+    return { job, created: true };
+  } catch (error) {
+    if (!(error instanceof JobConflictError)) {
+      throw error;
+    }
+
+    const dedupeKey = buildJobDedupeKey({
+      company: input.company,
+      title: input.title,
+      sourceUrl: input.sourceUrl,
+    });
+    const existing = await getJobByDedupeKey(dedupeKey);
+    if (!existing) {
+      throw error;
+    }
+    return { job: existing, created: false };
+  }
+}
+
 export async function createJob(input: CreateJobInput): Promise<JobListing> {
   const db = getDb();
   const dedupeKey = buildJobDedupeKey({
@@ -134,10 +171,15 @@ export async function updateJob(
 }
 
 function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "23505"
-  );
+  let current: unknown = error;
+
+  while (current && typeof current === "object") {
+    if ("code" in current && (current as { code?: string }).code === "23505") {
+      return true;
+    }
+    current =
+      "cause" in current ? (current as { cause?: unknown }).cause : undefined;
+  }
+
+  return false;
 }

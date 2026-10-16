@@ -17,5 +17,27 @@ services:
       timeout: 5s
       retries: 10
 
+  n8n:
+    image: n8nio/n8n:1.82.3
+    container_name: ai-job-radar-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678/
+      GENERIC_TIMEZONE: Europe/Belgrade
+      # Keep n8n local-only for this learning project.
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    # On Docker Desktop (macOS), host.docker.internal reaches the Next.js app.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   postgres_data:
+  n8n_data:

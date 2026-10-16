@@ -10,11 +10,19 @@ const aiEnvSchema = z.object({
   OPENAI_MODEL: z.string().min(1).default("gpt-4o-mini"),
 });
 
+const webhookEnvSchema = z.object({
+  N8N_WEBHOOK_SECRET: z
+    .string()
+    .min(8, "N8N_WEBHOOK_SECRET must be at least 8 characters"),
+});
+
 export type AppEnv = z.infer<typeof envSchema>;
 export type AiEnv = z.infer<typeof aiEnvSchema>;
+export type WebhookEnv = z.infer<typeof webhookEnvSchema>;
 
 let cachedEnv: AppEnv | null = null;
 let cachedAiEnv: AiEnv | null = null;
+let cachedWebhookEnv: WebhookEnv | null = null;
 
 /** Validate and cache required server-side environment variables. */
 export function getEnv(): AppEnv {
@@ -54,4 +62,23 @@ export function getAiEnv(): AiEnv {
 
   cachedAiEnv = parsed.data;
   return cachedAiEnv;
+}
+
+/** Required only when calling the n8n ingest webhook endpoint. */
+export function getWebhookEnv(): WebhookEnv {
+  if (cachedWebhookEnv) return cachedWebhookEnv;
+
+  const parsed = webhookEnvSchema.safeParse({
+    N8N_WEBHOOK_SECRET: process.env.N8N_WEBHOOK_SECRET,
+  });
+
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Invalid webhook environment: ${details}`);
+  }
+
+  cachedWebhookEnv = parsed.data;
+  return cachedWebhookEnv;
 }

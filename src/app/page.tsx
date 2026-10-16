@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AppHeader } from "@/components/dashboard/app-header";
+import { AutomationStatus } from "@/components/dashboard/automation-status";
 import { JobList } from "@/components/dashboard/job-list";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { getDashboardStats } from "@/lib/dashboard-stats";
@@ -64,6 +65,7 @@ async function DashboardContent() {
   return (
     <>
       <SummaryCards stats={stats} />
+      <AutomationStatus />
       <JobList jobs={jobs} />
     </>
   );

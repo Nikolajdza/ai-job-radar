@@ -25,6 +25,9 @@ export function handleRouteError(error: unknown) {
   }
 
   if (error instanceof Error) {
+    if (error.name === "WebhookUnauthorizedError") {
+      return jsonError(error.message, 401);
+    }
     if (error.name === "JobConflictError" || error.name === "AnalysisInProgressError") {
       return jsonError(error.message, 409);
     }
@@ -50,6 +53,7 @@ export function handleRouteError(error: unknown) {
     if (
       error.message.startsWith("Invalid environment:") ||
       error.message.startsWith("Invalid AI environment:") ||
+      error.message.startsWith("Invalid webhook environment:") ||
       error.message.includes("AI_PROVIDER=openai requires")
     ) {
       return jsonError(error.message, 503);

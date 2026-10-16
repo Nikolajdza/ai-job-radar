@@ -1,0 +1,12 @@
+{
+  "title": "TypeScript Engineer (AI Products)",
+  "company": "Signal Forge",
+  "location": "Remote (EU)",
+  "workFormat": "remote",
+  "salary": "€72k–€92k",
+  "description": "Build product features with React, Next.js, and TypeScript. You will integrate LLM APIs with structured outputs, collaborate on API design with Node.js services, and help ship reliable AI-assisted workflows. PostgreSQL experience and solid testing habits are expected.",
+  "sourceUrl": "https://example.com/jobs/signal-forge-typescript-ai",
+  "saved": true,
+  "analyze": true,
+  "forceAnalyze": false
+}
