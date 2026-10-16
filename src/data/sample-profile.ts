@@ -29,7 +29,7 @@ export const sampleProfile: UpdateProfileInput = {
     "Full-Stack Engineer",
     "AI Application Engineer",
   ],
-  locationPreferences: ["Remote (EU)", "Hybrid (EU)", "Zagreb"],
+  locationPreferences: ["Remote (EU)", "Hybrid (EU)", "Belgrade"],
   workFormatPreferences: ["remote", "hybrid"],
   salaryExpectation: "Competitive EU market rate",
 };
