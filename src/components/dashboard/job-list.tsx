@@ -14,6 +14,7 @@ import {
 } from "@/lib/jobs/filter";
 import {
   matchSearchSuggestions,
+  SUGGESTION_KIND_LABELS,
   type SearchSuggestion,
 } from "@/lib/jobs/search-suggestions";
 import {
@@ -126,6 +127,7 @@ export function JobList({ jobs, signedIn }: JobListProps) {
       <div className="space-y-4 border-b border-slate-100 px-5 py-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <SearchField
+            jobs={jobs}
             value={queryInput}
             onChange={(value) => {
               setQueryInput(value);
@@ -137,6 +139,8 @@ export function JobList({ jobs, signedIn }: JobListProps) {
               window.setTimeout(() => setSuggestionsOpen(false), 120);
             }}
             suggestionsOpen={suggestionsOpen}
+            onOpen={() => setSuggestionsOpen(true)}
+            onClose={() => setSuggestionsOpen(false)}
             onSelectSuggestion={applySuggestion}
             pending={searchPending}
           />
@@ -449,25 +453,38 @@ export function JobList({ jobs, signedIn }: JobListProps) {
 }
 
 function SearchField({
+  jobs,
   value,
   onChange,
   onFocus,
   onBlur,
   suggestionsOpen,
+  onOpen,
+  onClose,
   onSelectSuggestion,
   pending,
 }: {
+  jobs: JobListing[];
   value: string;
   onChange: (value: string) => void;
   onFocus: () => void;
   onBlur: () => void;
   suggestionsOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   onSelectSuggestion: (suggestion: SearchSuggestion) => void;
   pending: boolean;
 }) {
   const listId = useId();
-  const suggestions = matchSearchSuggestions(value);
+  const suggestions = matchSearchSuggestions(value, jobs);
   const showList = suggestionsOpen && suggestions.length > 0;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [previousValue, setPreviousValue] = useState(value);
+  if (value !== previousValue) {
+    setPreviousValue(value);
+    setActiveIndex(0);
+  }
+  const currentIndex = Math.min(activeIndex, Math.max(suggestions.length - 1, 0));
 
   return (
     <div className="relative min-w-0 flex-1">
@@ -480,12 +497,34 @@ function SearchField({
         onChange={(event) => onChange(event.target.value)}
         onFocus={onFocus}
         onBlur={onBlur}
-        placeholder="Try frontend, react, typescript…"
+        placeholder="Search roles, skills, companies…"
         autoComplete="off"
         role="combobox"
         aria-expanded={showList}
         aria-controls={listId}
         aria-autocomplete="list"
+        aria-activedescendant={
+          showList ? `${listId}-option-${currentIndex}` : undefined
+        }
+        onKeyDown={(event) => {
+          if (!showList && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+            onOpen();
+            return;
+          }
+          if (!showList) return;
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setActiveIndex((currentIndex + 1) % suggestions.length);
+          } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setActiveIndex((currentIndex - 1 + suggestions.length) % suggestions.length);
+          } else if (event.key === "Enter" && suggestions[currentIndex]) {
+            event.preventDefault();
+            onSelectSuggestion(suggestions[currentIndex]);
+          } else if (event.key === "Escape") {
+            onClose();
+          }
+        }}
         className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-10 pl-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
       />
       {pending ? (
@@ -500,22 +539,32 @@ function SearchField({
           role="listbox"
           className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
         >
-          {suggestions.map((suggestion) => (
+          {suggestions.map((suggestion, index) => (
             <li
-              key={`${suggestion.label}-${suggestion.query}`}
+              key={`${suggestion.kind}-${suggestion.query}`}
+              id={`${listId}-option-${index}`}
               role="option"
-              aria-selected={false}
+              aria-selected={index === currentIndex}
             >
               <button
                 type="button"
-                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                className={
+                  index === currentIndex
+                    ? "flex w-full items-center justify-between gap-3 bg-slate-100 px-3 py-2 text-left text-sm text-slate-900"
+                    : "flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                }
+                onMouseEnter={() => setActiveIndex(index)}
                 onMouseDown={(event) => {
                   event.preventDefault();
                   onSelectSuggestion(suggestion);
                 }}
               >
-                <span>{suggestion.label}</span>
-                <span className="text-xs text-slate-400">{suggestion.query}</span>
+                <span className="truncate">
+                  <Highlight text={suggestion.label} query={value} />
+                </span>
+                <span className="shrink-0 text-[11px] text-slate-400">
+                  {SUGGESTION_KIND_LABELS[suggestion.kind]}
+                </span>
               </button>
             </li>
           ))}
@@ -546,6 +595,21 @@ function Chip({
     >
       {children}
     </button>
+  );
+}
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  const typed = query.trim();
+  const index = typed ? text.toLowerCase().indexOf(typed.toLowerCase()) : -1;
+  if (index < 0) return text;
+  return (
+    <>
+      {text.slice(0, index)}
+      <span className="font-semibold text-slate-900">
+        {text.slice(index, index + typed.length)}
+      </span>
+      {text.slice(index + typed.length)}
+    </>
   );
 }
 

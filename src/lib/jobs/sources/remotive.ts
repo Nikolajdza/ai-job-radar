@@ -55,7 +55,10 @@ export type FetchRemotiveOptions = {
   search?: string;
   /** Role focus applied after fetch. Default: all software-related. */
   focus?: RemotiveFocus;
-  /** Max jobs to keep after local filtering (1–100). */
+  /**
+   * Max jobs to keep after local filtering.
+   * Omit it to keep every software job Remotive returned.
+   */
   limit?: number;
 };
 
@@ -70,7 +73,10 @@ export async function fetchRemotiveJobs(
   options: FetchRemotiveOptions = {},
 ): Promise<RemotiveJob[]> {
   const focus = options.focus ?? "software";
-  const limit = Math.min(Math.max(options.limit ?? 60, 1), 100);
+  const limit =
+    options.limit === undefined
+      ? undefined
+      : Math.min(Math.max(options.limit, 1), 2000);
   const search = options.search?.trim().toLowerCase() ?? "";
 
   const url = new URL("https://remotive.com/api/remote-jobs");
@@ -106,7 +112,7 @@ export async function fetchRemotiveJobs(
     });
   }
 
-  return filtered.slice(0, limit);
+  return limit === undefined ? filtered : filtered.slice(0, limit);
 }
 
 export function isSoftwareRelated(job: RemotiveJob): boolean {

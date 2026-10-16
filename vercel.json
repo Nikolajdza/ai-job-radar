@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/jobs/sync/remotive?focus=software&limit=60",
+      "path": "/api/jobs/sync/remotive?focus=software",
       "schedule": "0 7 * * *"
     }
   ]

@@ -11,9 +11,9 @@ const syncBodySchema = z
   .object({
     search: z.string().trim().min(2).max(120).optional(),
     focus: z.enum(REMOTIVE_FOCUSES).optional().default("software"),
-    limit: z.number().int().min(1).max(100).optional().default(60),
+    limit: z.number().int().min(1).max(2000).optional(),
   })
-  .default({ focus: "software", limit: 60 });
+  .default({ focus: "software" });
 
 /**
  * Pull software-related remote jobs from Remotive into the database.
@@ -42,10 +42,12 @@ export async function GET(request: Request) {
     const focus = REMOTIVE_FOCUSES.includes(focusParam as RemotiveFocus)
       ? (focusParam as RemotiveFocus)
       : "software";
-    const limitRaw = Number(searchParams.get("limit") ?? "60");
-    const limit = Number.isFinite(limitRaw)
-      ? Math.min(Math.max(Math.trunc(limitRaw), 1), 100)
-      : 60;
+    const limitParam = searchParams.get("limit");
+    const limitRaw = limitParam === null ? undefined : Number(limitParam);
+    const limit =
+      limitRaw === undefined || !Number.isFinite(limitRaw)
+        ? undefined
+        : Math.min(Math.max(Math.trunc(limitRaw), 1), 2000);
 
     const result = await syncRemotiveJobs({ focus, limit });
     return jsonOk(result);

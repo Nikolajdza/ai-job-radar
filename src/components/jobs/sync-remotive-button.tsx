@@ -25,13 +25,14 @@ export function SyncRemotiveButton() {
       const response = await fetch("/api/jobs/sync/remotive", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ focus, limit: 60 }),
+        body: JSON.stringify({ focus }),
       });
 
       const body = (await response.json().catch(() => null)) as {
         error?: string;
         created?: number;
         skippedDuplicates?: number;
+        removed?: number;
         fetched?: number;
       } | null;
 
@@ -41,7 +42,7 @@ export function SyncRemotiveButton() {
       }
 
       setMessage(
-        `${REMOTIVE_FOCUS_LABELS[focus]}: ${body?.created ?? 0} new · ${body?.skippedDuplicates ?? 0} duplicates · ${body?.fetched ?? 0} fetched`,
+        `${REMOTIVE_FOCUS_LABELS[focus]}: ${body?.created ?? 0} new · ${body?.removed ?? 0} removed · ${body?.fetched ?? 0} on Remotive`,
       );
       startTransition(() => {
         router.refresh();
