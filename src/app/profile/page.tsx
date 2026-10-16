@@ -14,9 +14,8 @@ export default function ProfilePage() {
             Candidate profile
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Skills, preferences, and optional CV text feed AI match analysis.
-            Sign-in/auth can come later — this stays a single local profile for
-            now.
+            Paste a CV, extract structured fields with AI, review, then save.
+            Job match analysis uses this profile afterward. Auth can come later.
           </p>
         </div>
 

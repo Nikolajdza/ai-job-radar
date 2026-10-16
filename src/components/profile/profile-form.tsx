@@ -4,10 +4,27 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent } from "react";
 import type { CandidateProfile } from "@/lib/types/profile";
-import { WORK_FORMATS, WORK_FORMAT_LABELS } from "@/lib/types/job";
+import {
+  WORK_FORMATS,
+  WORK_FORMAT_LABELS,
+  type WorkFormat,
+} from "@/lib/types/job";
 
 type ProfileFormProps = {
   profile: CandidateProfile;
+};
+
+type FormState = {
+  fullName: string;
+  headline: string;
+  experienceSummary: string;
+  skills: string;
+  preferredTechnologies: string;
+  targetRoles: string;
+  locationPreferences: string;
+  workFormatPreferences: WorkFormat[];
+  salaryExpectation: string;
+  cvText: string;
 };
 
 function listToLines(values: string[]): string {
@@ -21,37 +38,112 @@ function linesToList(value: string): string[] {
     .filter(Boolean);
 }
 
+function toFormState(profile: CandidateProfile): FormState {
+  return {
+    fullName: profile.fullName,
+    headline: profile.headline,
+    experienceSummary: profile.experienceSummary,
+    skills: listToLines(profile.skills),
+    preferredTechnologies: listToLines(profile.preferredTechnologies),
+    targetRoles: listToLines(profile.targetRoles),
+    locationPreferences: listToLines(profile.locationPreferences),
+    workFormatPreferences: profile.workFormatPreferences,
+    salaryExpectation: profile.salaryExpectation ?? "",
+    cvText: profile.cvText ?? "",
+  };
+}
+
 export function ProfileForm({ profile }: ProfileFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [extracting, setExtracting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [extractNote, setExtractNote] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(() => toFormState(profile));
+
+  function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  async function onExtractFromCv() {
+    setError(null);
+    setSuccess(null);
+    setExtractNote(null);
+    setExtracting(true);
+
+    try {
+      const response = await fetch("/api/profile/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cvText: form.cvText }),
+      });
+
+      const body = (await response.json().catch(() => null)) as {
+        error?: string;
+        extraction?: {
+          fullName: string;
+          headline: string;
+          experienceSummary: string;
+          skills: string[];
+          preferredTechnologies: string[];
+          targetRoles: string[];
+          locationPreferences: string[];
+          workFormatPreferences: WorkFormat[];
+          salaryExpectation: string | null;
+          notesForUser: string;
+        };
+        provider?: string;
+        model?: string;
+      } | null;
+
+      if (!response.ok || !body?.extraction) {
+        setError(body?.error ?? "Could not extract profile from CV");
+        return;
+      }
+
+      const extracted = body.extraction;
+      setForm((current) => ({
+        ...current,
+        fullName: extracted.fullName,
+        headline: extracted.headline,
+        experienceSummary: extracted.experienceSummary,
+        skills: listToLines(extracted.skills),
+        preferredTechnologies: listToLines(extracted.preferredTechnologies),
+        targetRoles: listToLines(extracted.targetRoles),
+        locationPreferences: listToLines(extracted.locationPreferences),
+        workFormatPreferences: extracted.workFormatPreferences,
+        salaryExpectation: extracted.salaryExpectation ?? "",
+      }));
+      setExtractNote(
+        `${extracted.notesForUser} (${body.provider}/${body.model})`,
+      );
+      setSuccess(
+        "Profile fields filled from CV. Review them, then click Save profile.",
+      );
+    } catch {
+      setError("Network error while extracting from CV");
+    } finally {
+      setExtracting(false);
+    }
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setSuccess(false);
-
-    const form = new FormData(event.currentTarget);
-    const workFormatPreferences = WORK_FORMATS.filter(
-      (format) => form.get(`work-${format}`) === "on",
-    );
+    setSuccess(null);
 
     const payload = {
-      fullName: String(form.get("fullName") ?? ""),
-      headline: String(form.get("headline") ?? ""),
-      experienceSummary: String(form.get("experienceSummary") ?? ""),
-      skills: linesToList(String(form.get("skills") ?? "")),
-      preferredTechnologies: linesToList(
-        String(form.get("preferredTechnologies") ?? ""),
-      ),
-      targetRoles: linesToList(String(form.get("targetRoles") ?? "")),
-      locationPreferences: linesToList(
-        String(form.get("locationPreferences") ?? ""),
-      ),
-      workFormatPreferences,
-      salaryExpectation: String(form.get("salaryExpectation") ?? "") || null,
-      cvText: String(form.get("cvText") ?? "") || null,
+      fullName: form.fullName,
+      headline: form.headline,
+      experienceSummary: form.experienceSummary,
+      skills: linesToList(form.skills),
+      preferredTechnologies: linesToList(form.preferredTechnologies),
+      targetRoles: linesToList(form.targetRoles),
+      locationPreferences: linesToList(form.locationPreferences),
+      workFormatPreferences: form.workFormatPreferences,
+      salaryExpectation: form.salaryExpectation || null,
+      cvText: form.cvText || null,
     };
 
     const response = await fetch("/api/profile", {
@@ -68,32 +160,67 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       return;
     }
 
-    setSuccess(true);
+    setSuccess("Profile saved. You can now run AI match on job listings.");
     startTransition(() => {
       router.refresh();
     });
   }
 
+  const busy = pending || extracting;
+
   return (
     <form onSubmit={onSubmit} className="space-y-5">
+      <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">Add CV</h3>
+            <p className="mt-1 text-xs text-slate-500">
+              Paste CV text, then extract structured profile fields with AI.
+              Review everything before saving. PDF upload can come later.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              void onExtractFromCv();
+            }}
+            disabled={busy || form.cvText.trim().length < 40}
+            className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+          >
+            {extracting ? "Extracting…" : "Extract from CV"}
+          </button>
+        </div>
+        <textarea
+          name="cvText"
+          rows={10}
+          value={form.cvText}
+          onChange={(event) => updateField("cvText", event.target.value)}
+          placeholder="Paste CV content here…"
+          className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-300"
+        />
+        {extractNote ? (
+          <p className="mt-2 text-xs text-slate-500">{extractNote}</p>
+        ) : null}
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
           label="Full name"
-          name="fullName"
-          defaultValue={profile.fullName}
+          value={form.fullName}
+          onChange={(value) => updateField("fullName", value)}
           required
         />
         <Field
           label="Salary expectation"
-          name="salaryExpectation"
-          defaultValue={profile.salaryExpectation ?? ""}
+          value={form.salaryExpectation}
+          onChange={(value) => updateField("salaryExpectation", value)}
         />
       </div>
 
       <Field
         label="Headline"
-        name="headline"
-        defaultValue={profile.headline}
+        value={form.headline}
+        onChange={(value) => updateField("headline", value)}
         required
       />
 
@@ -102,11 +229,13 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           Experience summary
         </span>
         <textarea
-          name="experienceSummary"
           required
           minLength={20}
           rows={6}
-          defaultValue={profile.experienceSummary}
+          value={form.experienceSummary}
+          onChange={(event) =>
+            updateField("experienceSummary", event.target.value)
+          }
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-300"
         />
       </label>
@@ -114,42 +243,25 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <ListField
           label="Skills (one per line)"
-          name="skills"
-          defaultValue={listToLines(profile.skills)}
+          value={form.skills}
+          onChange={(value) => updateField("skills", value)}
         />
         <ListField
           label="Preferred technologies"
-          name="preferredTechnologies"
-          defaultValue={listToLines(profile.preferredTechnologies)}
+          value={form.preferredTechnologies}
+          onChange={(value) => updateField("preferredTechnologies", value)}
         />
         <ListField
           label="Target roles"
-          name="targetRoles"
-          defaultValue={listToLines(profile.targetRoles)}
+          value={form.targetRoles}
+          onChange={(value) => updateField("targetRoles", value)}
         />
         <ListField
           label="Location preferences"
-          name="locationPreferences"
-          defaultValue={listToLines(profile.locationPreferences)}
+          value={form.locationPreferences}
+          onChange={(value) => updateField("locationPreferences", value)}
         />
       </div>
-
-      <label className="block text-sm">
-        <span className="mb-1.5 block font-medium text-slate-700">
-          CV text (optional)
-        </span>
-        <p className="mb-2 text-xs text-slate-500">
-          Paste your CV as plain text. AI match analysis will use this together
-          with the fields above. PDF upload can come later.
-        </p>
-        <textarea
-          name="cvText"
-          rows={10}
-          defaultValue={profile.cvText ?? ""}
-          placeholder="Paste CV content here…"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-300"
-        />
-      </label>
 
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-slate-700">
@@ -163,8 +275,17 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             >
               <input
                 type="checkbox"
-                name={`work-${format}`}
-                defaultChecked={profile.workFormatPreferences.includes(format)}
+                checked={form.workFormatPreferences.includes(format)}
+                onChange={(event) => {
+                  updateField(
+                    "workFormatPreferences",
+                    event.target.checked
+                      ? [...form.workFormatPreferences, format]
+                      : form.workFormatPreferences.filter(
+                          (value) => value !== format,
+                        ),
+                  );
+                }}
                 className="rounded border-slate-300"
               />
               {WORK_FORMAT_LABELS[format]}
@@ -180,13 +301,13 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       ) : null}
       {success ? (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          Profile saved.
+          {success}
         </p>
       ) : null}
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={busy}
         className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
       >
         {pending ? "Saving…" : "Save profile"}
@@ -197,21 +318,21 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
 function Field({
   label,
-  name,
-  defaultValue,
+  value,
+  onChange,
   required = false,
 }: {
   label: string;
-  name: string;
-  defaultValue: string;
+  value: string;
+  onChange: (value: string) => void;
   required?: boolean;
 }) {
   return (
     <label className="block text-sm">
       <span className="mb-1.5 block font-medium text-slate-700">{label}</span>
       <input
-        name={name}
-        defaultValue={defaultValue}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
         required={required}
         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-300"
       />
@@ -221,20 +342,20 @@ function Field({
 
 function ListField({
   label,
-  name,
-  defaultValue,
+  value,
+  onChange,
 }: {
   label: string;
-  name: string;
-  defaultValue: string;
+  value: string;
+  onChange: (value: string) => void;
 }) {
   return (
     <label className="block text-sm">
       <span className="mb-1.5 block font-medium text-slate-700">{label}</span>
       <textarea
-        name={name}
         rows={5}
-        defaultValue={defaultValue}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-300"
       />
     </label>

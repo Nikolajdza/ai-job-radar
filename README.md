@@ -11,7 +11,8 @@ Learning portfolio project — not a commercial SaaS product. The system never a
 - Search, chip filters, pagination, sorting
 - Sync remote jobs from Remotive (free, no API key)
 - Apply opens the real listing (no auto-apply)
-- Profile + CV text used by AI match analysis
+- Profile + CV text; AI can extract profile fields from pasted CV
+- Job match analysis uses the saved profile/CV
 - Auth/sign-in postponed (single local profile)
 - Mock AI by default; optional OpenAI; local n8n automation
 
