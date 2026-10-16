@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/dashboard/app-header";
 import { MatchScore } from "@/components/dashboard/match-score";
 import { ApplyButton, OriginalListingLink } from "@/components/jobs/apply-button";
+import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JobAnalysisPanel } from "@/components/jobs/job-analysis-panel";
 import { JobNotesForm } from "@/components/jobs/job-notes-form";
 import { StatusSelect } from "@/components/jobs/status-select";
@@ -156,9 +157,12 @@ function JobHeader({ job, signedIn }: { job: JobListing; signedIn: boolean }) {
             {job.salary ? ` · ${job.salary}` : ""}
           </p>
         </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-          {signedIn ? <ApplyButton jobId={job.id} /> : null}
-          <OriginalListingLink href={job.sourceUrl} source={job.source} />
+        <div className="flex shrink-0 items-center gap-2 sm:items-end">
+          {signedIn ? <SaveJobButton jobId={job.id} saved={job.saved} /> : null}
+          <div className="flex flex-col gap-2">
+            {signedIn ? <ApplyButton jobId={job.id} /> : null}
+            <OriginalListingLink href={job.sourceUrl} source={job.source} />
+          </div>
         </div>
       </div>
     </div>

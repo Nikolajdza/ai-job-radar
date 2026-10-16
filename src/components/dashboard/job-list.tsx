@@ -5,6 +5,7 @@ import { useId, useMemo, useState, type ReactNode } from "react";
 import { MatchScore } from "@/components/dashboard/match-score";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ApplyButton } from "@/components/jobs/apply-button";
+import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { STRONG_MATCH_THRESHOLD } from "@/lib/dashboard-stats";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import {
@@ -405,11 +406,14 @@ export function JobList({ jobs, signedIn }: JobListProps) {
                     </span>
                   </div>
                   {signedIn ? (
-                    <ApplyButton
-                      jobId={job.id}
-                      label="Apply kit"
-                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
-                    />
+                    <>
+                      <SaveJobButton jobId={job.id} saved={job.saved} size="sm" />
+                      <ApplyButton
+                        jobId={job.id}
+                        label="Apply kit"
+                        className="inline-flex items-center justify-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                      />
+                    </>
                   ) : (
                     <Link
                       href={`/jobs/${job.id}`}

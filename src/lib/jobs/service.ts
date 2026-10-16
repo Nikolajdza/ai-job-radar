@@ -42,9 +42,11 @@ export async function listJobs(viewerId?: string | null): Promise<JobListing[]> 
   const rows = await db
     .select({
       job: jobs,
+      // `saved` is first on purpose. Drizzle drops a left-joined object when
+      // its first selected column is null, and status is null until the user sets one.
       tracking: {
-        applicationStatus: jobTracking.applicationStatus,
         saved: jobTracking.saved,
+        applicationStatus: jobTracking.applicationStatus,
         notes: jobTracking.notes,
       },
       matchScore: jobAnalyses.matchScore,

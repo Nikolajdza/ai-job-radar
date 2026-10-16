@@ -83,6 +83,9 @@ export function UserMenu({ user }: { user: SessionUser }) {
             <MenuLink href="/" onNavigate={() => setOpen(false)}>
               Dashboard
             </MenuLink>
+            <MenuLink href="/pipeline" onNavigate={() => setOpen(false)}>
+              My jobs
+            </MenuLink>
             <MenuLink href="/profile" onNavigate={() => setOpen(false)}>
               Profile & CV
             </MenuLink>
