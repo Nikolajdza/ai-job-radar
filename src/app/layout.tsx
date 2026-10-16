@@ -27,9 +27,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-slate-50 text-slate-900">
+      <body className="flex min-h-full flex-col text-slate-900">
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
-        <div className="night-sky" aria-hidden />
+        <div className="atmosphere" aria-hidden />
         {children}
       </body>
     </html>

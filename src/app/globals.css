@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc;
+  --background: #f0f4f8;
   --foreground: #0f172a;
   color-scheme: light;
 }
@@ -112,35 +112,81 @@
 }
 
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  isolation: isolate;
 }
 
 /*
- * Atmosphere sits under the page as a fixed layer. Body goes transparent in
- * dark mode so the solid slate-50 fill does not hide it; html keeps the base.
- * isolation keeps z-index:-1 above the html color without breaking sticky nav.
+ * Fixed atmosphere under every page. Body stays transparent so the layer shows;
+ * html keeps the base fill. isolation keeps z-index:-1 above that fill without
+ * breaking sticky nav.
  */
-.night-sky {
-  display: none;
+html {
+  background-color: #eef3f8;
+}
+
+.atmosphere {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: #eef3f8;
+  background-image:
+    radial-gradient(ellipse 52rem 36rem at -4% -10%, rgba(16, 185, 129, 0.28), transparent 70%),
+    radial-gradient(ellipse 44rem 32rem at 104% -4%, rgba(56, 189, 248, 0.22), transparent 68%),
+    radial-gradient(ellipse 40rem 28rem at 72% 108%, rgba(45, 212, 191, 0.16), transparent 72%),
+    radial-gradient(ellipse 26rem 20rem at 12% 92%, rgba(52, 211, 153, 0.12), transparent 70%);
+}
+
+.atmosphere::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 8% 4%, transparent 0 3.5rem, rgba(5, 150, 105, 0.16) 3.55rem, transparent 3.75rem),
+    radial-gradient(circle at 8% 4%, transparent 0 7rem, rgba(5, 150, 105, 0.1) 7.05rem, transparent 7.25rem),
+    radial-gradient(circle at 8% 4%, transparent 0 10.5rem, rgba(5, 150, 105, 0.06) 10.55rem, transparent 10.75rem),
+    radial-gradient(circle at 8% 4%, transparent 0 14rem, rgba(5, 150, 105, 0.035) 14.05rem, transparent 14.25rem),
+    radial-gradient(circle at 94% 8%, transparent 0 4rem, rgba(14, 165, 233, 0.14) 4.05rem, transparent 4.25rem),
+    radial-gradient(circle at 94% 8%, transparent 0 8rem, rgba(14, 165, 233, 0.08) 8.05rem, transparent 8.25rem),
+    radial-gradient(circle at 94% 8%, transparent 0 12rem, rgba(14, 165, 233, 0.045) 12.05rem, transparent 12.25rem);
+}
+
+.atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(100, 116, 139, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100, 116, 139, 0.08) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 95% 85% at 50% 12%, transparent 12%, #000 78%);
+}
+
+.bg-white {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+  background-image: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.95),
+    transparent 42%,
+    rgba(16, 185, 129, 0.03)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 0 rgba(15, 23, 42, 0.02),
+    0 18px 40px -28px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .dark html {
   background-color: #070d1a;
 }
 
-.dark body {
-  background: transparent;
-  isolation: isolate;
-}
-
-.dark .night-sky {
-  display: block;
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
+.dark .atmosphere {
   background-color: #070d1a;
   background-image:
     radial-gradient(ellipse 52rem 36rem at -4% -10%, rgba(16, 185, 129, 0.48), transparent 70%),
@@ -149,11 +195,7 @@ body {
     radial-gradient(ellipse 28rem 22rem at 18% 88%, rgba(45, 212, 191, 0.14), transparent 70%);
 }
 
-.dark .night-sky::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.9;
+.dark .atmosphere::before {
   background-image:
     radial-gradient(circle at 8% 4%, transparent 0 3.5rem, rgba(167, 243, 208, 0.22) 3.55rem, transparent 3.75rem),
     radial-gradient(circle at 8% 4%, transparent 0 7rem, rgba(167, 243, 208, 0.14) 7.05rem, transparent 7.25rem),
@@ -164,15 +206,10 @@ body {
     radial-gradient(circle at 94% 8%, transparent 0 12rem, rgba(199, 210, 254, 0.08) 12.05rem, transparent 12.25rem);
 }
 
-.dark .night-sky::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+.dark .atmosphere::after {
   background-image:
     linear-gradient(rgba(226, 232, 240, 0.07) 1px, transparent 1px),
     linear-gradient(90deg, rgba(226, 232, 240, 0.07) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 95% 85% at 50% 12%, transparent 12%, #000 78%);
 }
 
 .dark .bg-white {
