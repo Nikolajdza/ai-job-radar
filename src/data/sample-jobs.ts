@@ -19,6 +19,7 @@ export const sampleJobs: JobListing[] = [
     applicationStatus: "to_apply",
     matchScore: 86,
     saved: true,
+    notes: null,
   },
   {
     id: "job-002",
@@ -34,6 +35,7 @@ export const sampleJobs: JobListing[] = [
     applicationStatus: "interesting",
     matchScore: 78,
     saved: true,
+    notes: null,
   },
   {
     id: "job-003",
@@ -49,6 +51,7 @@ export const sampleJobs: JobListing[] = [
     applicationStatus: "applied",
     matchScore: 72,
     saved: true,
+    notes: null,
   },
   {
     id: "job-004",
@@ -64,6 +67,7 @@ export const sampleJobs: JobListing[] = [
     applicationStatus: null,
     matchScore: null,
     saved: false,
+    notes: null,
   },
   {
     id: "job-005",
@@ -79,6 +83,7 @@ export const sampleJobs: JobListing[] = [
     applicationStatus: "rejected",
     matchScore: 41,
     saved: true,
+    notes: null,
   },
   {
     id: "job-006",
@@ -94,5 +99,6 @@ export const sampleJobs: JobListing[] = [
     applicationStatus: "interview",
     matchScore: 81,
     saved: true,
+    notes: null,
   },
 ];

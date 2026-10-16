@@ -27,6 +27,7 @@ export type JobListing = {
   /** Approximate heuristic match score from AI analysis, when available. */
   matchScore: number | null;
   saved: boolean;
+  notes: string | null;
 };
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {

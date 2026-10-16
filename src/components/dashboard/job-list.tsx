@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MatchScore } from "@/components/dashboard/match-score";
-import { StatusBadge } from "@/components/dashboard/status-badge";
+import { StatusSelect } from "@/components/jobs/status-select";
 import {
   WORK_FORMAT_LABELS,
   type JobListing,
@@ -48,8 +49,8 @@ export function JobList({ jobs }: JobListProps) {
         <div>
           <h2 className="text-base font-semibold text-slate-900">Job listings</h2>
           <p className="mt-0.5 text-sm text-slate-500">
-            Sample data for local development — {filteredJobs.length} of{" "}
-            {jobs.length} shown
+            Loaded from PostgreSQL — {filteredJobs.length} of {jobs.length}{" "}
+            shown
           </p>
         </div>
         <label className="block w-full sm:max-w-xs">
@@ -83,14 +84,21 @@ export function JobList({ jobs }: JobListProps) {
                   colSpan={6}
                   className="px-5 py-10 text-center text-slate-500"
                 >
-                  No jobs match your search.
+                  {jobs.length === 0
+                    ? "No jobs yet. Add one or run npm run db:seed."
+                    : "No jobs match your search."}
                 </td>
               </tr>
             ) : (
               filteredJobs.map((job) => (
                 <tr key={job.id} className="hover:bg-slate-50/80">
                   <td className="px-5 py-4 align-top">
-                    <div className="font-medium text-slate-900">{job.title}</div>
+                    <Link
+                      href={`/jobs/${job.id}`}
+                      className="font-medium text-slate-900 hover:underline"
+                    >
+                      {job.title}
+                    </Link>
                     <div className="mt-0.5 text-slate-500">{job.company}</div>
                   </td>
                   <td className="px-5 py-4 align-top text-slate-600">
@@ -106,7 +114,10 @@ export function JobList({ jobs }: JobListProps) {
                     <MatchScore score={job.matchScore} />
                   </td>
                   <td className="px-5 py-4 align-top">
-                    <StatusBadge status={job.applicationStatus} />
+                    <StatusSelect
+                      jobId={job.id}
+                      value={job.applicationStatus}
+                    />
                   </td>
                   <td className="px-5 py-4 align-top whitespace-nowrap text-slate-500">
                     {formatDate(job.createdAt)}
