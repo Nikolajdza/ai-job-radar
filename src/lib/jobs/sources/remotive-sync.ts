@@ -5,6 +5,7 @@ import { createJobIdempotent, getJobById } from "@/lib/jobs/service";
 import {
   fetchRemotiveJobs,
   mapRemotiveJobToCreateInput,
+  type RemotiveFocus,
 } from "@/lib/jobs/sources/remotive";
 import type { JobListing } from "@/lib/types/job";
 
@@ -12,15 +13,22 @@ export type RemotiveSyncResult = {
   fetched: number;
   created: number;
   skippedDuplicates: number;
+  focus: RemotiveFocus;
   jobs: JobListing[];
   attribution: string;
 };
 
 export async function syncRemotiveJobs(options?: {
   search?: string;
+  focus?: RemotiveFocus;
   limit?: number;
 }): Promise<RemotiveSyncResult> {
-  const remoteJobs = await fetchRemotiveJobs(options);
+  const focus = options?.focus ?? "software";
+  const remoteJobs = await fetchRemotiveJobs({
+    search: options?.search,
+    focus,
+    limit: options?.limit ?? 60,
+  });
   const createdJobs: JobListing[] = [];
   let created = 0;
   let skippedDuplicates = 0;
@@ -53,6 +61,7 @@ export async function syncRemotiveJobs(options?: {
     fetched: remoteJobs.length,
     created,
     skippedDuplicates,
+    focus,
     jobs: createdJobs,
     attribution:
       "Job listings sourced from Remotive. Each listing links back to its Remotive URL.",

@@ -8,13 +8,14 @@ Learning portfolio project — not a commercial SaaS product. The system never a
 
 **MVP + Remotive sync + apply/match UX**
 
-- Search, chip filters, pagination, sorting
-- Sync remote jobs from Remotive (free, no API key)
+- Search, role chips (Frontend / Full-stack / Backend), pagination, sorting
+- Sync up to 60 software jobs from Remotive (focus: all / frontend / …)
 - Apply opens the real listing (no auto-apply)
 - Profile + CV text; AI can extract profile fields from pasted CV
 - Job match analysis uses the saved profile/CV
 - Auth/sign-in postponed (single local profile)
-- Mock AI by default; optional OpenAI; local n8n automation
+- Mock AI by default; optional **Groq** (free tier) or OpenAI; local n8n
+- Optional daily Remotive sync via Vercel Cron
 
 ## Requirements
 
@@ -81,13 +82,16 @@ Follow [n8n/README.md](n8n/README.md).
 
 Copy `.env.example` to `.env.local`. Never commit real secrets.
 
-| Variable             | Purpose                                 |
-| -------------------- | --------------------------------------- |
-| `DATABASE_URL`       | PostgreSQL connection string            |
-| `AI_PROVIDER`        | `mock` (default) or `openai`            |
-| `OPENAI_API_KEY`     | Required only when `AI_PROVIDER=openai` |
-| `OPENAI_MODEL`       | Optional (default `gpt-4o-mini`)        |
-| `N8N_WEBHOOK_SECRET` | Shared secret for `/api/webhooks/jobs`  |
+| Variable             | Purpose                                      |
+| -------------------- | -------------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string                 |
+| `AI_PROVIDER`        | `mock` (default), `groq`, or `openai`        |
+| `GROQ_API_KEY`       | Required when `AI_PROVIDER=groq` (free tier) |
+| `GROQ_MODEL`         | Optional (default `llama-3.3-70b-versatile`) |
+| `OPENAI_API_KEY`     | Required only when `AI_PROVIDER=openai`      |
+| `OPENAI_MODEL`       | Optional (default `gpt-4o-mini`)             |
+| `N8N_WEBHOOK_SECRET` | Shared secret for `/api/webhooks/jobs`       |
+| `CRON_SECRET`        | Protects Vercel Cron Remotive sync (prod)    |
 
 ## Definition of done (MVP)
 

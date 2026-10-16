@@ -21,6 +21,23 @@ const remotiveResponseSchema = z.object({
 
 export type RemotiveJob = z.infer<typeof remotiveJobSchema>;
 
+/** Sync focus — applied client-side (Remotive query params are unreliable). */
+export const REMOTIVE_FOCUSES = [
+  "software",
+  "frontend",
+  "fullstack",
+  "backend",
+] as const;
+
+export type RemotiveFocus = (typeof REMOTIVE_FOCUSES)[number];
+
+export const REMOTIVE_FOCUS_LABELS: Record<RemotiveFocus, string> = {
+  software: "All software",
+  frontend: "Frontend",
+  fullstack: "Full-stack",
+  backend: "Backend",
+};
+
 const SOFTWARE_CATEGORIES = new Set([
   "software development",
   "artificial intelligence",
@@ -31,34 +48,41 @@ const SOFTWARE_CATEGORIES = new Set([
 ]);
 
 export type FetchRemotiveOptions = {
-  /** Free-text search passed to Remotive. */
+  /**
+   * Optional free-text search. Prefer `focus` — Remotive often ignores
+   * querystring filters due to CDN cache.
+   */
   search?: string;
-  /** Max jobs to keep after local filtering. */
+  /** Role focus applied after fetch. Default: all software-related. */
+  focus?: RemotiveFocus;
+  /** Max jobs to keep after local filtering (1–100). */
   limit?: number;
 };
 
 /**
  * Fetch remote jobs from Remotive's public API (no API key).
  * Terms require linking back to the Remotive job URL and crediting Remotive.
- * Keep request volume low (Remotive asks for gentle usage).
+ *
+ * Remotive's `search`/`category`/`limit` params are often ignored by their
+ * edge cache — we fetch the board and filter locally.
  */
 export async function fetchRemotiveJobs(
   options: FetchRemotiveOptions = {},
 ): Promise<RemotiveJob[]> {
-  const search = options.search?.trim() || "frontend typescript react";
-  const limit = options.limit ?? 15;
+  const focus = options.focus ?? "software";
+  const limit = Math.min(Math.max(options.limit ?? 60, 1), 100);
+  const search = options.search?.trim().toLowerCase() ?? "";
 
   const url = new URL("https://remotive.com/api/remote-jobs");
-  url.searchParams.set("search", search);
-  url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 50)));
+  // Hint only — may be ignored by CDN; real filtering is local.
+  url.searchParams.set("category", "software-dev");
 
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
       "User-Agent": "ai-job-radar/0.1 (personal learning project)",
     },
-    signal: AbortSignal.timeout(15_000),
-    // Always hit the live API when syncing; do not cache stale boards.
+    signal: AbortSignal.timeout(25_000),
     cache: "no-store",
   });
 
@@ -69,18 +93,54 @@ export async function fetchRemotiveJobs(
   const json: unknown = await response.json();
   const parsed = remotiveResponseSchema.parse(json);
 
-  const filtered = parsed.jobs.filter(isSoftwareRelated);
+  let filtered = parsed.jobs.filter(isSoftwareRelated);
+  filtered = filtered.filter((job) => matchesFocus(job, focus));
+
+  if (search) {
+    filtered = filtered.filter((job) => {
+      const haystack = jobHaystack(job);
+      return search
+        .split(/\s+/)
+        .filter(Boolean)
+        .every((token) => haystack.includes(token));
+    });
+  }
+
   return filtered.slice(0, limit);
 }
 
-function isSoftwareRelated(job: RemotiveJob): boolean {
+export function isSoftwareRelated(job: RemotiveJob): boolean {
   const category = (job.category ?? "").toLowerCase().trim();
   if (SOFTWARE_CATEGORIES.has(category)) return true;
 
-  const haystack = `${job.title} ${(job.tags ?? []).join(" ")}`.toLowerCase();
-  return /(frontend|back-?end|full.?stack|software|developer|typescript|react|next\.?js|nodejs|node\.js|python|golang|devops)/i.test(
-    haystack,
+  return /(frontend|back-?end|full.?stack|software|developer|engineer|typescript|react|next\.?js|nodejs|node\.js|python|golang|devops|sre|qa\b|mobile)/i.test(
+    jobHaystack(job),
   );
+}
+
+export function matchesFocus(job: RemotiveJob, focus: RemotiveFocus): boolean {
+  if (focus === "software") return true;
+
+  const haystack = jobHaystack(job);
+
+  if (focus === "frontend") {
+    return /(frontend|front-end|front end|react|next\.?js|vue|angular|svelte|css|tailwind|ui engineer|web engineer)/i.test(
+      haystack,
+    );
+  }
+
+  if (focus === "backend") {
+    return /(backend|back-end|back end|node\.?js|typescript api|django|flask|fastapi|spring|golang|rails|nestjs|postgresql|kubernetes|devops)/i.test(
+      haystack,
+    );
+  }
+
+  // fullstack
+  return /(full.?stack|full stack)/i.test(haystack);
+}
+
+function jobHaystack(job: RemotiveJob): string {
+  return `${job.title} ${job.category ?? ""} ${(job.tags ?? []).join(" ")}`.toLowerCase();
 }
 
 /** Remotive descriptions are HTML — store plain text for analysis/UI. */

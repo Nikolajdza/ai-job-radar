@@ -25,6 +25,21 @@ export function handleRouteError(error: unknown) {
   }
 
   if (error instanceof Error) {
+    if (
+      "statusCode" in error &&
+      typeof error.statusCode === "number" &&
+      error.statusCode >= 400 &&
+      error.statusCode < 600 &&
+      !(
+        error.name === "AiTimeoutError" ||
+        error.name === "AiRateLimitError" ||
+        error.name === "AiValidationError" ||
+        error.name === "AiProviderError"
+      )
+    ) {
+      return jsonError(error.message, error.statusCode);
+    }
+
     if (error.name === "WebhookUnauthorizedError") {
       return jsonError(error.message, 401);
     }
@@ -54,7 +69,8 @@ export function handleRouteError(error: unknown) {
       error.message.startsWith("Invalid environment:") ||
       error.message.startsWith("Invalid AI environment:") ||
       error.message.startsWith("Invalid webhook environment:") ||
-      error.message.includes("AI_PROVIDER=openai requires")
+      error.message.includes("AI_PROVIDER=openai requires") ||
+      error.message.includes("AI_PROVIDER=groq requires")
     ) {
       return jsonError(error.message, 503);
     }

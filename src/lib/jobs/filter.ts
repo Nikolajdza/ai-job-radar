@@ -8,10 +8,17 @@ import {
 
 export type JobSort = "newest" | "oldest" | "match_desc" | "match_asc";
 
+export type RoleFocusFilter =
+  | "all"
+  | "frontend"
+  | "fullstack"
+  | "backend";
+
 export type JobFilters = {
   query?: string;
   status?: ApplicationStatus | "untracked" | "all";
   workFormat?: WorkFormat | "all";
+  roleFocus?: RoleFocusFilter;
   savedOnly?: boolean;
   strongMatchesOnly?: boolean;
   strongMatchThreshold?: number;
@@ -26,6 +33,7 @@ export function filterJobs(
     query = "",
     status = "all",
     workFormat = "all",
+    roleFocus = "all",
     savedOnly = false,
     strongMatchesOnly = false,
     strongMatchThreshold = 75,
@@ -54,6 +62,8 @@ export function filterJobs(
 
     if (workFormat !== "all" && job.workFormat !== workFormat) return false;
 
+    if (roleFocus !== "all" && !matchesRoleFocus(job, roleFocus)) return false;
+
     if (!normalized) return true;
 
     const haystack = [
@@ -73,6 +83,27 @@ export function filterJobs(
   });
 
   return [...filtered].sort((a, b) => compareJobs(a, b, sort));
+}
+
+function matchesRoleFocus(
+  job: JobListing,
+  focus: Exclude<RoleFocusFilter, "all">,
+): boolean {
+  const haystack = `${job.title} ${job.description}`.toLowerCase();
+
+  if (focus === "frontend") {
+    return /(frontend|front-end|front end|react|next\.?js|vue|angular|svelte|tailwind|ui engineer)/i.test(
+      haystack,
+    );
+  }
+
+  if (focus === "backend") {
+    return /(backend|back-end|back end|node\.?js|django|flask|fastapi|spring|golang|rails|nestjs|api engineer|devops)/i.test(
+      haystack,
+    );
+  }
+
+  return /(full.?stack|full stack)/i.test(haystack);
 }
 
 function compareJobs(a: JobListing, b: JobListing, sort: JobSort): number {

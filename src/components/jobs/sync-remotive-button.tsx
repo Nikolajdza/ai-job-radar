@@ -2,17 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import {
+  REMOTIVE_FOCUSES,
+  REMOTIVE_FOCUS_LABELS,
+  type RemotiveFocus,
+} from "@/lib/jobs/sources/remotive";
 
-type SyncRemotiveButtonProps = {
-  search?: string;
-};
-
-export function SyncRemotiveButton({
-  search = "frontend typescript react",
-}: SyncRemotiveButtonProps) {
+export function SyncRemotiveButton() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [loading, setLoading] = useState(false);
+  const [focus, setFocus] = useState<RemotiveFocus>("software");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +25,7 @@ export function SyncRemotiveButton({
       const response = await fetch("/api/jobs/sync/remotive", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ search, limit: 12 }),
+        body: JSON.stringify({ focus, limit: 60 }),
       });
 
       const body = (await response.json().catch(() => null)) as {
@@ -33,6 +33,7 @@ export function SyncRemotiveButton({
         created?: number;
         skippedDuplicates?: number;
         fetched?: number;
+        focus?: string;
       } | null;
 
       if (!response.ok) {
@@ -41,7 +42,7 @@ export function SyncRemotiveButton({
       }
 
       setMessage(
-        `Synced ${body?.created ?? 0} new · ${body?.skippedDuplicates ?? 0} duplicates skipped · ${body?.fetched ?? 0} fetched`,
+        `${REMOTIVE_FOCUS_LABELS[focus]}: ${body?.created ?? 0} new · ${body?.skippedDuplicates ?? 0} duplicates · ${body?.fetched ?? 0} fetched`,
       );
       startTransition(() => {
         router.refresh();
@@ -56,17 +57,39 @@ export function SyncRemotiveButton({
   const busy = loading || pending;
 
   return (
-    <div className="flex flex-col items-stretch gap-1 sm:items-end">
-      <button
-        type="button"
-        onClick={() => {
-          void onSync();
-        }}
-        disabled={busy}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
-      >
-        {busy ? "Syncing…" : "Sync from Remotive"}
-      </button>
+    <div className="flex flex-col items-stretch gap-2 sm:items-end">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <label className="sr-only" htmlFor="remotive-focus">
+          Sync focus
+        </label>
+        <select
+          id="remotive-focus"
+          value={focus}
+          disabled={busy}
+          onChange={(event) => setFocus(event.target.value as RemotiveFocus)}
+          className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm text-slate-800"
+        >
+          {REMOTIVE_FOCUSES.map((value) => (
+            <option key={value} value={value}>
+              {REMOTIVE_FOCUS_LABELS[value]}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => {
+            void onSync();
+          }}
+          disabled={busy}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+        >
+          {busy ? "Syncing…" : "Sync from Remotive"}
+        </button>
+      </div>
+      <p className="max-w-sm text-right text-xs text-slate-400">
+        Pulls up to 60 software jobs from Remotive (filtered locally). Use
+        Frontend only if you want a narrower board.
+      </p>
       {message ? (
         <p className="text-xs text-emerald-700">{message}</p>
       ) : null}

@@ -6,7 +6,11 @@ import { MatchScore } from "@/components/dashboard/match-score";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ApplyButton } from "@/components/jobs/apply-button";
 import { STRONG_MATCH_THRESHOLD } from "@/lib/dashboard-stats";
-import { filterJobs, type JobSort } from "@/lib/jobs/filter";
+import {
+  filterJobs,
+  type JobSort,
+  type RoleFocusFilter,
+} from "@/lib/jobs/filter";
 import {
   APPLICATION_STATUS_LABELS,
   APPLICATION_STATUSES,
@@ -36,6 +40,7 @@ export function JobList({ jobs }: JobListProps) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [workFormat, setWorkFormat] = useState<WorkFormatFilter>("all");
+  const [roleFocus, setRoleFocus] = useState<RoleFocusFilter>("all");
   const [savedOnly, setSavedOnly] = useState(false);
   const [strongMatchesOnly, setStrongMatchesOnly] = useState(false);
   const [sort, setSort] = useState<JobSort>("newest");
@@ -48,12 +53,22 @@ export function JobList({ jobs }: JobListProps) {
         query,
         status,
         workFormat,
+        roleFocus,
         savedOnly,
         strongMatchesOnly,
         strongMatchThreshold: STRONG_MATCH_THRESHOLD,
         sort,
       }),
-    [jobs, query, status, workFormat, savedOnly, strongMatchesOnly, sort],
+    [
+      jobs,
+      query,
+      status,
+      workFormat,
+      roleFocus,
+      savedOnly,
+      strongMatchesOnly,
+      sort,
+    ],
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredJobs.length / PAGE_SIZE));
@@ -70,6 +85,7 @@ export function JobList({ jobs }: JobListProps) {
   const activeFilterCount = [
     status !== "all",
     workFormat !== "all",
+    roleFocus !== "all",
     savedOnly,
     strongMatchesOnly,
   ].filter(Boolean).length;
@@ -77,6 +93,7 @@ export function JobList({ jobs }: JobListProps) {
   function clearFilters() {
     setStatus("all");
     setWorkFormat("all");
+    setRoleFocus("all");
     setSavedOnly(false);
     setStrongMatchesOnly(false);
     resetPage();
@@ -139,11 +156,45 @@ export function JobList({ jobs }: JobListProps) {
               status === "all" &&
               !savedOnly &&
               !strongMatchesOnly &&
-              workFormat === "all"
+              workFormat === "all" &&
+              roleFocus === "all"
             }
             onClick={clearFilters}
           >
             All
+          </Chip>
+          <Chip
+            active={roleFocus === "frontend"}
+            onClick={() => {
+              setRoleFocus((value) =>
+                value === "frontend" ? "all" : "frontend",
+              );
+              resetPage();
+            }}
+          >
+            Frontend
+          </Chip>
+          <Chip
+            active={roleFocus === "fullstack"}
+            onClick={() => {
+              setRoleFocus((value) =>
+                value === "fullstack" ? "all" : "fullstack",
+              );
+              resetPage();
+            }}
+          >
+            Full-stack
+          </Chip>
+          <Chip
+            active={roleFocus === "backend"}
+            onClick={() => {
+              setRoleFocus((value) =>
+                value === "backend" ? "all" : "backend",
+              );
+              resetPage();
+            }}
+          >
+            Backend
           </Chip>
           <Chip
             active={strongMatchesOnly}

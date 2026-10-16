@@ -80,4 +80,28 @@ describe("filterJobs", () => {
   it("sorts newest first by default", () => {
     expect(filterJobs(jobs).map((item) => item.id)).toEqual(["c", "a", "b"]);
   });
+
+  it("filters by role focus using title/description keywords", () => {
+    const mixed = [
+      job({
+        id: "fe",
+        title: "Frontend React Engineer",
+        description: "Build UI with React and Next.js",
+        createdAt: "2026-10-16T00:00:00.000Z",
+      }),
+      job({
+        id: "be",
+        title: "Backend API Engineer",
+        description: "Node.js services and PostgreSQL",
+        createdAt: "2026-10-15T00:00:00.000Z",
+      }),
+    ];
+
+    expect(
+      filterJobs(mixed, { roleFocus: "frontend" }).map((j) => j.id),
+    ).toEqual(["fe"]);
+    expect(
+      filterJobs(mixed, { roleFocus: "backend" }).map((j) => j.id),
+    ).toEqual(["be"]);
+  });
 });

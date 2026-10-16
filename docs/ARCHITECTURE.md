@@ -35,8 +35,8 @@ Remotive terms require linking back to each job URL and crediting Remotive. Keep
 
 ## AI design
 
-1. Providers implement a shared interface (`mock` | `openai`).
-2. Default provider is `mock` so local work needs no paid API.
+1. Providers implement a shared interface (`mock` | `groq` | `openai`).
+2. Default provider is `mock` so local work needs no paid API. Groq is the free-tier LLM option.
 3. Model output is validated with Zod before persistence.
 4. Prompts forbid inventing candidate experience and treat job text as untrusted.
 5. `job_analyses` stores provider/model metadata for reproducibility.

@@ -5,9 +5,11 @@ const envSchema = z.object({
 });
 
 const aiEnvSchema = z.object({
-  AI_PROVIDER: z.enum(["mock", "openai"]).default("mock"),
+  AI_PROVIDER: z.enum(["mock", "openai", "groq"]).default("mock"),
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_MODEL: z.string().min(1).default("gpt-4o-mini"),
+  GROQ_API_KEY: z.string().min(1).optional(),
+  GROQ_MODEL: z.string().min(1).default("llama-3.3-70b-versatile"),
 });
 
 const webhookEnvSchema = z.object({
@@ -51,6 +53,8 @@ export function getAiEnv(): AiEnv {
     AI_PROVIDER: process.env.AI_PROVIDER ?? "mock",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || undefined,
     OPENAI_MODEL: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+    GROQ_API_KEY: process.env.GROQ_API_KEY || undefined,
+    GROQ_MODEL: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
   });
 
   if (!parsed.success) {

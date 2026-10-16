@@ -1,15 +1,15 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { APICallError, generateText, Output } from "ai";
-import {
-  AiProviderError,
-  AiRateLimitError,
-  AiTimeoutError,
-  AiValidationError,
-} from "@/lib/ai/errors";
+import { generateText, Output } from "ai";
+import { AiProviderError, AiValidationError } from "@/lib/ai/errors";
 import {
   cvExtractSchema,
   type CvExtractOutput,
 } from "@/lib/ai/cv-extract-schema";
+import {
+  GROQ_BASE_URL,
+  GROQ_DEFAULT_MODEL,
+} from "@/lib/ai/providers/groq";
+import { mapCompatibleProviderError } from "@/lib/ai/providers/compatible";
 import { getAiEnv } from "@/lib/env";
 
 const EXTRACT_SYSTEM_PROMPT = `You extract structured candidate profile fields from CV/resume plain text.
@@ -41,10 +41,30 @@ export async function extractProfileFromCv(
   if (env.AI_PROVIDER === "openai") {
     if (!env.OPENAI_API_KEY) {
       throw new AiProviderError(
-        "AI_PROVIDER=openai requires OPENAI_API_KEY. Use AI_PROVIDER=mock for local development.",
+        "AI_PROVIDER=openai requires OPENAI_API_KEY. Use AI_PROVIDER=mock or groq.",
       );
     }
-    return extractWithOpenAi(trimmed, env.OPENAI_API_KEY, env.OPENAI_MODEL);
+    return extractWithCompatibleLlm({
+      cvText: trimmed,
+      apiKey: env.OPENAI_API_KEY,
+      modelId: env.OPENAI_MODEL,
+      provider: "openai",
+    });
+  }
+
+  if (env.AI_PROVIDER === "groq") {
+    if (!env.GROQ_API_KEY) {
+      throw new AiProviderError(
+        "AI_PROVIDER=groq requires GROQ_API_KEY. Use AI_PROVIDER=mock without a key.",
+      );
+    }
+    return extractWithCompatibleLlm({
+      cvText: trimmed,
+      apiKey: env.GROQ_API_KEY,
+      modelId: env.GROQ_MODEL || GROQ_DEFAULT_MODEL,
+      provider: "groq",
+      baseURL: GROQ_BASE_URL,
+    });
   }
 
   return extractWithMock(trimmed);
@@ -106,34 +126,45 @@ async function extractWithMock(cvText: string): Promise<CvExtractResult> {
   };
 }
 
-async function extractWithOpenAi(
-  cvText: string,
-  apiKey: string,
-  modelId: string,
-): Promise<CvExtractResult> {
-  const openai = createOpenAI({ apiKey });
+async function extractWithCompatibleLlm(options: {
+  cvText: string;
+  apiKey: string;
+  modelId: string;
+  provider: string;
+  baseURL?: string;
+}): Promise<CvExtractResult> {
+  const client = createOpenAI({
+    apiKey: options.apiKey,
+    ...(options.baseURL ? { baseURL: options.baseURL } : {}),
+  });
 
   try {
     const result = await generateText({
-      model: openai(modelId),
+      model: client(options.modelId),
       system: EXTRACT_SYSTEM_PROMPT,
-      prompt: `Extract a structured candidate profile from this CV text:\n\n${cvText.slice(0, 40_000)}`,
+      prompt: `Extract a structured candidate profile from this CV text:\n\n${options.cvText.slice(0, 40_000)}`,
       output: Output.object({ schema: cvExtractSchema }),
       abortSignal: AbortSignal.timeout(30_000),
       maxRetries: 1,
     });
 
     if (!result.output) {
-      throw new AiValidationError("OpenAI returned no CV extraction output");
+      throw new AiValidationError(
+        `${options.provider} returned no CV extraction output`,
+      );
     }
 
     return {
       extraction: cvExtractSchema.parse(result.output),
-      provider: "openai",
-      model: modelId,
+      provider: options.provider,
+      model: options.modelId,
     };
   } catch (error) {
-    throw mapProviderError(error);
+    throw mapCompatibleProviderError(
+      error,
+      options.provider,
+      `${options.provider} authentication failed. Check the API key.`,
+    );
   }
 }
 
@@ -195,36 +226,3 @@ function guessLocations(cvText: string): string[] {
   return locations.slice(0, 5);
 }
 
-function mapProviderError(error: unknown): Error {
-  if (
-    error instanceof AiProviderError ||
-    error instanceof AiValidationError ||
-    error instanceof AiTimeoutError ||
-    error instanceof AiRateLimitError
-  ) {
-    return error;
-  }
-
-  if (error instanceof DOMException && error.name === "TimeoutError") {
-    return new AiTimeoutError();
-  }
-
-  if (APICallError.isInstance(error)) {
-    if (error.statusCode === 429) return new AiRateLimitError(error.message);
-    return new AiProviderError(
-      `OpenAI request failed${error.statusCode ? ` (${error.statusCode})` : ""}`,
-      502,
-    );
-  }
-
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-    if (message.includes("timeout") || message.includes("aborted")) {
-      return new AiTimeoutError();
-    }
-  }
-
-  return new AiProviderError(
-    error instanceof Error ? error.message : "Unknown AI provider error",
-  );
-}

@@ -59,9 +59,11 @@ export function JobAnalysisPanel({
             Match this job to your profile
           </h3>
           <p className="mt-1 text-sm text-slate-500">
-            Compares the listing to your profile fields and CV text. Approximate
-            heuristic — not a hiring probability. Add/update your CV under
-            Profile for better results.
+            Compares the listing to your profile and CV. With{" "}
+            <code className="text-xs">AI_PROVIDER=mock</code> this is a skill
+            overlap heuristic; with <code className="text-xs">groq</code> or{" "}
+            <code className="text-xs">openai</code> it uses a real LLM. Not a
+            hiring probability.
           </p>
         </div>
         <button
@@ -119,8 +121,18 @@ function AnalysisResult({ analysis }: { analysis: StoredJobAnalysis }) {
     <div className="mt-5 space-y-5">
       <div className="flex flex-wrap items-center gap-3">
         <MatchScore score={analysis.matchScore} />
+        <span
+          className={`rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+            analysis.provider === "mock"
+              ? "bg-slate-100 text-slate-600 ring-slate-200"
+              : "bg-emerald-50 text-emerald-800 ring-emerald-200"
+          }`}
+        >
+          {analysis.provider === "mock" ? "Heuristic mock" : "LLM"} ·{" "}
+          {analysis.provider}/{analysis.model}
+        </span>
         <p className="text-xs text-slate-400">
-          {analysis.provider}/{analysis.model} · updated{" "}
+          updated{" "}
           {new Intl.DateTimeFormat("en-GB", {
             dateStyle: "medium",
             timeStyle: "short",

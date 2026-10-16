@@ -13,8 +13,9 @@ Free-tier limits change over time. Check current Vercel and Supabase plan terms 
 | Feature | Local mock | Deployed demo |
 | ------- | ---------- | ------------- |
 | Dashboard + CRUD | No paid key | Supabase DB URL |
-| AI analysis | `AI_PROVIDER=mock` | Optional `openai` + API key |
+| AI analysis | `AI_PROVIDER=mock` | Optional `groq` (free tier) or `openai` |
 | n8n automation | Docker on laptop | Not required for a basic Vercel demo |
+| Daily Remotive sync | Manual button | Optional Vercel Cron + `CRON_SECRET` |
 
 ## Before you deploy
 
@@ -25,16 +26,20 @@ Free-tier limits change over time. Check current Vercel and Supabase plan terms 
 5. Set environment variables in Vercel:
 
 ```bash
-DATABASE_URL=postgresql://...
+DATABASE_URL=postgresql://...   # Supabase pooler URI preferred
 AI_PROVIDER=mock
-# Optional:
+# Free-tier LLM (recommended for demos with real AI):
+# AI_PROVIDER=groq
+# GROQ_API_KEY=gsk_...
+# Optional paid:
 # AI_PROVIDER=openai
 # OPENAI_API_KEY=...
-# OPENAI_MODEL=gpt-4o-mini
-# N8N_WEBHOOK_SECRET=...   # only if you expose the webhook carefully
+# Cron (Hobby): set CRON_SECRET so GET /api/jobs/sync/remotive is protected
+# CRON_SECRET=long-random-string
 ```
 
 6. Deploy. Confirm `/` loads and `/profile` can read/write.
+7. On the dashboard, sync with focus **All software** (not Frontend-only) to fill the board.
 
 ## Important limitations
 
