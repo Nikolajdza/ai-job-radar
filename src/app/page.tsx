@@ -29,7 +29,7 @@ export default function Home() {
           <HomeContent />
         </Suspense>
       </main>
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 bg-white/80 backdrop-blur-md dark:border-white/10 dark:bg-white/20">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>AI Job Radar — portfolio project built with Next.js, Drizzle & free AI.</p>
           <AutomationStatus />

@@ -17,32 +17,33 @@
 }
 
 /*
- * Dark mode recolors the existing slate/white utilities. Surfaces stay neutral
- * black; emerald is only the accent on apply buttons and the New badge.
+ * Dark mode recolors the existing slate/white utilities. The page is deep ink
+ * with a quiet corner glow; cards sit a step lighter so they read as surfaces.
+ * Emerald stays the accent on apply buttons and the New badge.
  * Panels that are already dark (bg-slate-950) opt back out below.
  */
 .dark {
   color-scheme: dark;
-  --background: #09090b;
-  --foreground: #fafafa;
-  --color-white: #141417;
-  --color-slate-50: #09090b;
-  --color-slate-100: #1c1c21;
-  --color-slate-200: #2e2e36;
-  --color-slate-300: #45454f;
-  --color-slate-400: #8d8d98;
-  --color-slate-500: #a8a8b3;
-  --color-slate-600: #c9c9d2;
-  --color-slate-700: #dcdce4;
-  --color-slate-800: #ececf1;
-  --color-slate-900: #f7f7f8;
-  --color-slate-950: #fcfcfd;
-  --color-emerald-50: #1a1b22;
-  --color-emerald-100: #22232c;
-  --color-emerald-200: #34343e;
+  --background: #09101e;
+  --foreground: #eef3fb;
+  --color-white: #141c30;
+  --color-slate-50: #09101e;
+  --color-slate-100: #1a2540;
+  --color-slate-200: #3a4d74;
+  --color-slate-300: #45557a;
+  --color-slate-400: #8b9bb8;
+  --color-slate-500: #a9b6cd;
+  --color-slate-600: #c5d0e2;
+  --color-slate-700: #d7e0ee;
+  --color-slate-800: #e7eef8;
+  --color-slate-900: #f3f6fb;
+  --color-slate-950: #fbfcfe;
+  --color-emerald-50: #13261f;
+  --color-emerald-100: #17352a;
+  --color-emerald-200: #1f5c45;
   --color-emerald-600: #10b981;
-  --color-teal-50: #1a1b22;
-  --color-teal-200: #34343e;
+  --color-teal-50: #10262c;
+  --color-teal-200: #1a5560;
   --color-rose-50: #2a151c;
   --color-rose-100: #3a1c24;
   --color-rose-200: #6b3040;
@@ -116,8 +117,86 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/*
+ * Atmosphere sits under the page as a fixed layer. Body goes transparent in
+ * dark mode so the solid slate-50 fill does not hide it; html keeps the base.
+ * isolation keeps z-index:-1 above the html color without breaking sticky nav.
+ */
+.night-sky {
+  display: none;
+}
+
+.dark html {
+  background-color: #070d1a;
+}
+
 .dark body {
-  background:
-    radial-gradient(ellipse 80% 45% at 50% -20%, rgba(255, 255, 255, 0.05), transparent 55%),
-    var(--background);
+  background: transparent;
+  isolation: isolate;
+}
+
+.dark .night-sky {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: #070d1a;
+  background-image:
+    radial-gradient(ellipse 52rem 36rem at -4% -10%, rgba(16, 185, 129, 0.48), transparent 70%),
+    radial-gradient(ellipse 46rem 34rem at 104% -2%, rgba(99, 102, 241, 0.5), transparent 68%),
+    radial-gradient(ellipse 40rem 28rem at 78% 100%, rgba(14, 165, 233, 0.22), transparent 72%),
+    radial-gradient(ellipse 28rem 22rem at 18% 88%, rgba(45, 212, 191, 0.14), transparent 70%);
+}
+
+.dark .night-sky::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  background-image:
+    radial-gradient(circle at 8% 4%, transparent 0 3.5rem, rgba(167, 243, 208, 0.22) 3.55rem, transparent 3.75rem),
+    radial-gradient(circle at 8% 4%, transparent 0 7rem, rgba(167, 243, 208, 0.14) 7.05rem, transparent 7.25rem),
+    radial-gradient(circle at 8% 4%, transparent 0 10.5rem, rgba(167, 243, 208, 0.09) 10.55rem, transparent 10.75rem),
+    radial-gradient(circle at 8% 4%, transparent 0 14rem, rgba(167, 243, 208, 0.05) 14.05rem, transparent 14.25rem),
+    radial-gradient(circle at 94% 8%, transparent 0 4rem, rgba(199, 210, 254, 0.24) 4.05rem, transparent 4.25rem),
+    radial-gradient(circle at 94% 8%, transparent 0 8rem, rgba(199, 210, 254, 0.14) 8.05rem, transparent 8.25rem),
+    radial-gradient(circle at 94% 8%, transparent 0 12rem, rgba(199, 210, 254, 0.08) 12.05rem, transparent 12.25rem);
+}
+
+.dark .night-sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(226, 232, 240, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 232, 240, 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 95% 85% at 50% 12%, transparent 12%, #000 78%);
+}
+
+.dark .bg-white {
+  background-color: rgba(20, 28, 48, 0.78) !important;
+  background-image: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.09),
+    transparent 42%,
+    rgba(16, 185, 129, 0.04)
+  );
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.03),
+    0 22px 48px -28px rgba(2, 6, 23, 0.95);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.dark .border-slate-200,
+.dark .border-slate-200\/80 {
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.dark .border-slate-100 {
+  border-color: rgba(148, 163, 184, 0.1);
 }

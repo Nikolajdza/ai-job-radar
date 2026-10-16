@@ -29,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col bg-slate-50 text-slate-900">
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <div className="night-sky" aria-hidden />
         {children}
       </body>
     </html>
