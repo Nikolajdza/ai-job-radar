@@ -229,7 +229,7 @@ export function ProfileEditor({
   return (
     <form onSubmit={onSubmit} className="space-y-6 pb-24">
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="h-24 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-800" />
+        <div className="h-24 bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#065f46]" />
         <div className="-mt-12 flex flex-col gap-6 px-6 pb-6 sm:flex-row">
           <AvatarUploader
             name={form.fullName}

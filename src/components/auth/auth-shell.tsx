@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LogoMark } from "@/components/ui/logo";
 
 const HIGHLIGHTS = [
@@ -44,7 +45,10 @@ export function AuthShell({ children }: { children: ReactNode }) {
         </p>
       </aside>
 
-      <main className="flex flex-col justify-center px-4 py-12 sm:px-10">
+      <main className="relative flex flex-col justify-center px-4 py-12 sm:px-10">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
         <div className="mx-auto w-full max-w-sm">
           <Link href="/" className="mb-8 flex items-center gap-2.5 lg:hidden">
             <LogoMark />

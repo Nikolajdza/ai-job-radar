@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Nav } from "@/components/dashboard/nav";
 import { UserMenu } from "@/components/dashboard/user-menu";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LogoMark } from "@/components/ui/logo";
 import { getCurrentUser } from "@/lib/session";
 
@@ -15,9 +16,12 @@ export function AppHeader({ currentPath }: { currentPath: string }) {
             AI Job Radar
           </span>
         </Link>
-        <Suspense fallback={<div className="h-9 w-40" aria-hidden />}>
-          <HeaderAuth currentPath={currentPath} />
-        </Suspense>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <ThemeToggle />
+          <Suspense fallback={<div className="h-9 w-40" aria-hidden />}>
+            <HeaderAuth currentPath={currentPath} />
+          </Suspense>
+        </div>
       </div>
     </header>
   );

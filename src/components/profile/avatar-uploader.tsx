@@ -67,7 +67,7 @@ export function AvatarUploader({
         aria-label="Change profile photo"
       >
         <Avatar name={name || "You"} src={value} size="xl" className="shadow-md" />
-        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-900/55 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[#0f172a]/55 text-xs font-medium text-[#fff] opacity-0 transition group-hover:opacity-100">
           {busy ? "…" : "Change"}
         </span>
       </button>
