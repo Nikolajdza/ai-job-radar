@@ -6,18 +6,18 @@ Learning portfolio project — not a commercial SaaS product. The system never a
 
 ## Current status
 
-**Milestone 4 — n8n integration**
+**Milestone 5 — Portfolio quality**
 
-- Local n8n via Docker Compose (`localhost:5678`)
-- Authenticated ingest webhook with idempotent dedupe
-- Workflow creates/persists a job, runs AI analysis, and stubs a strong-match notification
-- Mock AI remains the default (no paid API required)
+- Search, status/work-format filters, sorting, and summary stats
+- Vitest coverage for core domain logic (dedupe, filters, validation, mock AI)
+- Architecture, deploy, and demo docs
+- Mock AI by default; optional OpenAI; local n8n automation
 
 ## Requirements
 
 - Node.js 20+ (tested with Node 24)
 - npm 10+
-- Docker Desktop (Postgres + n8n)
+- Docker Desktop (Postgres + optional n8n)
 - Optional: OpenAI API key only if you set `AI_PROVIDER=openai`
 
 ## Getting started
@@ -33,22 +33,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+```bash
+npm test
+npm run lint
+npm run build
+```
+
 ### n8n automation
 
 ```bash
 npm run n8n:up
 ```
 
-Then follow [n8n/README.md](n8n/README.md) to import `n8n/workflows/job-ingest.json` and run the sample job.
-
-Quick webhook test without the n8n UI:
-
-```bash
-curl -s -X POST http://localhost:3000/api/webhooks/jobs \
-  -H "Content-Type: application/json" \
-  -H "x-webhook-secret: dev-n8n-secret-change-me" \
-  -d @n8n/sample-job.json
-```
+Follow [n8n/README.md](n8n/README.md).
 
 ## Scripts
 
@@ -58,6 +55,7 @@ curl -s -X POST http://localhost:3000/api/webhooks/jobs \
 | `npm run build`       | Production build                     |
 | `npm run start`       | Run the production build             |
 | `npm run lint`        | Run ESLint                           |
+| `npm test`            | Run Vitest unit tests                |
 | `npm run db:up`       | Start local Postgres                 |
 | `npm run db:down`     | Stop Compose services                |
 | `npm run n8n:up`      | Start local n8n                      |
@@ -69,42 +67,41 @@ curl -s -X POST http://localhost:3000/api/webhooks/jobs \
 | `npm run db:seed`     | Seed sample jobs and profile         |
 | `npm run db:studio`   | Open Drizzle Studio                  |
 
-## Project layout
+## Documentation
 
-```text
-src/
-  app/                 Pages and Route Handlers
-  components/          UI components
-  data/                Sample seed content
-  lib/
-    ai/                Prompts, providers, analysis service
-    ingest/            n8n ingest orchestration
-    db/                Drizzle client + schema
-    jobs/              Job domain logic
-    profile/           Profile domain logic
-    validation/        Zod schemas
-    webhooks/          Webhook auth helpers
-n8n/                   Workflow export + local automation docs
-docker-compose.yml     Local PostgreSQL + n8n
-drizzle/               SQL migrations
-```
+- [Architecture](docs/ARCHITECTURE.md)
+- [Deploy (free-tier notes)](docs/DEPLOY.md)
+- [Demo checklist](docs/DEMO.md)
+- [n8n local setup](n8n/README.md)
 
 ## Environment
 
 Copy `.env.example` to `.env.local`. Never commit real secrets.
 
-| Variable              | Purpose                                   |
-| --------------------- | ----------------------------------------- |
-| `DATABASE_URL`        | PostgreSQL connection string              |
-| `AI_PROVIDER`         | `mock` (default) or `openai`              |
-| `OPENAI_API_KEY`      | Required only when `AI_PROVIDER=openai`   |
-| `OPENAI_MODEL`        | Optional model id (default `gpt-4o-mini`) |
-| `N8N_WEBHOOK_SECRET`  | Shared secret for `/api/webhooks/jobs`    |
+| Variable             | Purpose                                 |
+| -------------------- | --------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string            |
+| `AI_PROVIDER`        | `mock` (default) or `openai`            |
+| `OPENAI_API_KEY`     | Required only when `AI_PROVIDER=openai` |
+| `OPENAI_MODEL`       | Optional (default `gpt-4o-mini`)        |
+| `N8N_WEBHOOK_SECRET` | Shared secret for `/api/webhooks/jobs`  |
 
-## Roadmap
+## Definition of done (MVP)
+
+- [x] View and manage job listings (search/filter/sort/status/notes)
+- [x] Maintain a candidate profile
+- [x] Analyze a job with mock AI (and real OpenAI when configured)
+- [x] Persist AI analysis results
+- [x] Track application statuses
+- [x] Trigger/inspect an n8n workflow in the documented local setup
+- [x] Run tests, lint, and build
+- [x] Safe example env vars and no secrets in git
+- [ ] Optional: deploy frontend + DB on free-tier hosts (see [docs/DEPLOY.md](docs/DEPLOY.md))
+
+## Roadmap completed
 
 1. Milestone 1 — UI with mock data
 2. Milestone 2 — PostgreSQL persistence
-3. Milestone 3 — AI job analysis (mock + real provider)
-4. Milestone 4 — n8n local automation *(current)*
-5. Milestone 5 — Tests, docs, free-tier deploy
+3. Milestone 3 — AI job analysis
+4. Milestone 4 — n8n local automation
+5. Milestone 5 — Portfolio quality
