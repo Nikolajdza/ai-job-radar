@@ -87,7 +87,7 @@ Copy `.env.example` to `.env.local`. Never commit real secrets.
 | `DATABASE_URL`       | PostgreSQL connection string                 |
 | `AI_PROVIDER`        | `mock` (default), `groq`, or `openai`        |
 | `GROQ_API_KEY`       | Required when `AI_PROVIDER=groq` (free tier) |
-| `GROQ_MODEL`         | Optional (default `llama-3.3-70b-versatile`) |
+| `GROQ_MODEL`         | Optional (default `openai/gpt-oss-120b`)     |
 | `OPENAI_API_KEY`     | Required only when `AI_PROVIDER=openai`      |
 | `OPENAI_MODEL`       | Optional (default `gpt-4o-mini`)             |
 | `N8N_WEBHOOK_SECRET` | Shared secret for `/api/webhooks/jobs`       |

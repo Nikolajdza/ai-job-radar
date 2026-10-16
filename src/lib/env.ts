@@ -9,7 +9,7 @@ const aiEnvSchema = z.object({
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_MODEL: z.string().min(1).default("gpt-4o-mini"),
   GROQ_API_KEY: z.string().min(1).optional(),
-  GROQ_MODEL: z.string().min(1).default("llama-3.3-70b-versatile"),
+  GROQ_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
 });
 
 const webhookEnvSchema = z.object({
@@ -54,7 +54,7 @@ export function getAiEnv(): AiEnv {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || undefined,
     OPENAI_MODEL: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     GROQ_API_KEY: process.env.GROQ_API_KEY || undefined,
-    GROQ_MODEL: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+    GROQ_MODEL: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
   });
 
   if (!parsed.success) {
