@@ -1,7 +1,8 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { coverLetters, jobAnalyses, jobs, jobTracking } from "@/lib/db/schema";
+import { catalogSyncs, coverLetters, jobAnalyses, jobs, jobTracking } from "@/lib/db/schema";
 import { buildJobDedupeKey } from "@/lib/jobs/dedupe";
+import { isMissingRelation } from "@/lib/jobs/freshness";
 import {
   fetchRemotiveJobs,
   mapRemotiveJobToCreateInput,
@@ -68,6 +69,24 @@ export async function syncRemotiveJobs(options?: {
   }
 
   const db = getDb();
+  const tracksCatalog = options?.limit === undefined && !options?.search?.trim();
+  let syncId: string | null = null;
+  if (tracksCatalog) {
+    try {
+      const [sync] = await db
+        .insert(catalogSyncs)
+        .values({
+          source: "remotive",
+          startedAt: sql`now()`,
+          createdCount: 0,
+        })
+        .returning({ id: catalogSyncs.id });
+      syncId = sync?.id ?? null;
+    } catch (error) {
+      if (!isMissingRelation(error)) throw error;
+    }
+  }
+
   const keys = [...pending.keys()];
   const existing = new Set<string>();
 
@@ -92,6 +111,13 @@ export async function syncRemotiveJobs(options?: {
       .onConflictDoNothing({ target: jobs.dedupeKey })
       .returning({ id: jobs.id });
     created += inserted.length;
+  }
+
+  if (syncId) {
+    await db
+      .update(catalogSyncs)
+      .set({ createdCount: created })
+      .where(eq(catalogSyncs.id, syncId));
   }
 
   const removed = await removeStaleRemotiveJobs(db, {

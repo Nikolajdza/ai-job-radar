@@ -23,7 +23,9 @@ export function getDashboardStats(jobs: JobListing[]): DashboardStats {
       .length,
     strongMatches: jobs.filter(
       (job) =>
-        job.matchScore !== null && job.matchScore >= STRONG_MATCH_THRESHOLD,
+        job.applicationStatus !== "rejected" &&
+        job.matchScore !== null &&
+        job.matchScore >= STRONG_MATCH_THRESHOLD,
     ).length,
   };
 }

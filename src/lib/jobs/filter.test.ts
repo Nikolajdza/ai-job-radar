@@ -18,6 +18,7 @@ function job(partial: Partial<JobListing>): JobListing {
     matchScore: partial.matchScore ?? null,
     saved: partial.saved ?? false,
     notes: partial.notes ?? null,
+    isNew: partial.isNew ?? false,
   };
 }
 
@@ -77,6 +78,13 @@ describe("filterJobs", () => {
     expect(result.map((item) => item.id)).toEqual(["a"]);
   });
 
+  it("hides passed roles from the open dashboard when asked", () => {
+    expect(filterJobs(jobs, { hidePassed: true }).map((item) => item.id)).toEqual([
+      "c",
+      "a",
+    ]);
+  });
+
   it("sorts newest first by default", () => {
     expect(filterJobs(jobs).map((item) => item.id)).toEqual(["c", "a", "b"]);
   });
@@ -103,5 +111,15 @@ describe("filterJobs", () => {
     expect(
       filterJobs(mixed, { roleFocus: "backend" }).map((j) => j.id),
     ).toEqual(["be"]);
+  });
+
+  it("keeps only jobs from the latest refresh when newOnly is set", () => {
+    const mixed = [
+      job({ id: "fresh", source: "remotive", isNew: true }),
+      job({ id: "old", source: "remotive", isNew: false }),
+    ];
+    expect(filterJobs(mixed, { newOnly: true }).map((item) => item.id)).toEqual([
+      "fresh",
+    ]);
   });
 });

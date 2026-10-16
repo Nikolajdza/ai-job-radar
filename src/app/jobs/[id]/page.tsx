@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/dashboard/app-header";
 import { MatchScore } from "@/components/dashboard/match-score";
 import { ApplyButton, OriginalListingLink } from "@/components/jobs/apply-button";
+import { NewBadge } from "@/components/jobs/new-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JobAnalysisPanel } from "@/components/jobs/job-analysis-panel";
 import { JobNotesForm } from "@/components/jobs/job-notes-form";
@@ -138,6 +139,7 @@ function JobHeader({ job, signedIn }: { job: JobListing; signedIn: boolean }) {
             <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
               {WORK_FORMAT_LABELS[job.workFormat]}
             </span>
+            {job.isNew ? <NewBadge /> : null}
             {job.source === "remotive" ? (
               <span className="rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-800 ring-1 ring-teal-200 ring-inset">
                 Remotive

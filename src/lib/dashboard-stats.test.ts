@@ -41,10 +41,16 @@ describe("getDashboardStats", () => {
         matchScore: STRONG_MATCH_THRESHOLD,
       }),
       job({ id: "4", saved: false, matchScore: 40 }),
+      job({
+        id: "5",
+        saved: true,
+        applicationStatus: "rejected",
+        matchScore: 90,
+      }),
     ]);
 
     expect(stats).toEqual({
-      savedJobs: 3,
+      savedJobs: 4,
       applications: 2,
       interviews: 1,
       strongMatches: 2,

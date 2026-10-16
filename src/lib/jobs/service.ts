@@ -2,6 +2,7 @@ import { and, asc, eq, isNull, or } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { jobAnalyses, jobs, jobTracking } from "@/lib/db/schema";
 import { buildJobDedupeKey } from "@/lib/jobs/dedupe";
+import { isFromLatestSync, latestRemotiveSyncStart } from "@/lib/jobs/freshness";
 import { mapJobRow } from "@/lib/mappers";
 import { ForbiddenError } from "@/lib/errors";
 import type { JobListing } from "@/lib/types/job";
@@ -30,13 +31,15 @@ export class JobNotFoundError extends Error {
 export async function listJobs(viewerId?: string | null): Promise<JobListing[]> {
   const db = getDb();
 
+  const syncStartedAt = await latestRemotiveSyncStart();
+
   if (!viewerId) {
     const rows = await db
       .select()
       .from(jobs)
       .where(isNull(jobs.ownerUserId))
       .orderBy(asc(jobs.createdAt));
-    return rows.map((row) => mapJobRow(row));
+    return rows.map((row) => markFresh(mapJobRow(row), syncStartedAt));
   }
 
   const rows = await db
@@ -63,7 +66,13 @@ export async function listJobs(viewerId?: string | null): Promise<JobListing[]> 
     .where(or(isNull(jobs.ownerUserId), eq(jobs.ownerUserId, viewerId)))
     .orderBy(asc(jobs.createdAt));
 
-  return rows.map((row) => mapJobRow(row.job, row.tracking, row.matchScore));
+  return rows.map((row) =>
+    markFresh(mapJobRow(row.job, row.tracking, row.matchScore), syncStartedAt),
+  );
+}
+
+function markFresh(job: JobListing, syncStartedAt: Date | null): JobListing {
+  return { ...job, isNew: isFromLatestSync(job, syncStartedAt) };
 }
 
 export async function getJobById(
@@ -76,7 +85,9 @@ export async function getJobById(
   if (!row) return null;
   if (row.ownerUserId && row.ownerUserId !== viewerId) return null;
 
-  if (!viewerId) return mapJobRow(row);
+  if (!viewerId) {
+    return markFresh(mapJobRow(row), await latestRemotiveSyncStart());
+  }
 
   const [tracking] = await db
     .select()
@@ -89,7 +100,11 @@ export async function getJobById(
     .where(and(eq(jobAnalyses.jobId, id), eq(jobAnalyses.userId, viewerId)))
     .limit(1);
 
-  return mapJobRow(row, tracking ?? null, analysis?.matchScore ?? null);
+  const syncStartedAt = await latestRemotiveSyncStart();
+  return markFresh(
+    mapJobRow(row, tracking ?? null, analysis?.matchScore ?? null),
+    syncStartedAt,
+  );
 }
 
 export async function getJobByDedupeKey(

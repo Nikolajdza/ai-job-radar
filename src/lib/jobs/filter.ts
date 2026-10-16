@@ -20,6 +20,9 @@ export type JobFilters = {
   workFormat?: WorkFormat | "all";
   roleFocus?: RoleFocusFilter;
   savedOnly?: boolean;
+  newOnly?: boolean;
+  /** Signed-in dashboard hides Passed roles; they stay on My jobs. */
+  hidePassed?: boolean;
   strongMatchesOnly?: boolean;
   strongMatchThreshold?: number;
   sort?: JobSort;
@@ -35,6 +38,8 @@ export function filterJobs(
     workFormat = "all",
     roleFocus = "all",
     savedOnly = false,
+    newOnly = false,
+    hidePassed = false,
     strongMatchesOnly = false,
     strongMatchThreshold = 75,
     sort = "newest",
@@ -44,6 +49,8 @@ export function filterJobs(
 
   const filtered = jobs.filter((job) => {
     if (savedOnly && !job.saved) return false;
+    if (newOnly && !job.isNew) return false;
+    if (hidePassed && job.applicationStatus === "rejected") return false;
 
     if (strongMatchesOnly) {
       if (job.matchScore === null || job.matchScore < strongMatchThreshold) {

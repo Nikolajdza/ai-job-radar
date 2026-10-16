@@ -5,6 +5,7 @@ import { useId, useMemo, useState, type ReactNode } from "react";
 import { MatchScore } from "@/components/dashboard/match-score";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ApplyButton } from "@/components/jobs/apply-button";
+import { NewBadge } from "@/components/jobs/new-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { STRONG_MATCH_THRESHOLD } from "@/lib/dashboard-stats";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
@@ -13,6 +14,7 @@ import {
   type JobSort,
   type RoleFocusFilter,
 } from "@/lib/jobs/filter";
+import { paginationItems } from "@/lib/jobs/pagination";
 import {
   matchSearchSuggestions,
   SUGGESTION_KIND_LABELS,
@@ -53,6 +55,7 @@ export function JobList({ jobs, signedIn }: JobListProps) {
   const [workFormat, setWorkFormat] = useState<WorkFormatFilter>("all");
   const [roleFocus, setRoleFocus] = useState<RoleFocusFilter>("all");
   const [savedOnly, setSavedOnly] = useState(false);
+  const [newOnly, setNewOnly] = useState(false);
   const [strongMatchesOnly, setStrongMatchesOnly] = useState(false);
   const [sort, setSort] = useState<JobSort>("newest");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -67,6 +70,8 @@ export function JobList({ jobs, signedIn }: JobListProps) {
         workFormat,
         roleFocus,
         savedOnly,
+        newOnly,
+        hidePassed: signedIn,
         strongMatchesOnly,
         strongMatchThreshold: STRONG_MATCH_THRESHOLD,
         sort,
@@ -78,6 +83,8 @@ export function JobList({ jobs, signedIn }: JobListProps) {
       workFormat,
       roleFocus,
       savedOnly,
+      newOnly,
+      signedIn,
       strongMatchesOnly,
       sort,
     ],
@@ -99,6 +106,7 @@ export function JobList({ jobs, signedIn }: JobListProps) {
     workFormat !== "all",
     roleFocus !== "all",
     savedOnly,
+    newOnly,
     strongMatchesOnly,
   ].filter(Boolean).length;
 
@@ -107,6 +115,7 @@ export function JobList({ jobs, signedIn }: JobListProps) {
     setWorkFormat("all");
     setRoleFocus("all");
     setSavedOnly(false);
+    setNewOnly(false);
     setStrongMatchesOnly(false);
     resetPage();
   }
@@ -186,6 +195,7 @@ export function JobList({ jobs, signedIn }: JobListProps) {
             active={
               status === "all" &&
               !savedOnly &&
+              !newOnly &&
               !strongMatchesOnly &&
               workFormat === "all" &&
               roleFocus === "all"
@@ -194,6 +204,17 @@ export function JobList({ jobs, signedIn }: JobListProps) {
           >
             All
           </Chip>
+          {jobs.some((job) => job.isNew) ? (
+            <Chip
+              active={newOnly}
+              onClick={() => {
+                setNewOnly((value) => !value);
+                resetPage();
+              }}
+            >
+              New
+            </Chip>
+          ) : null}
           <Chip
             active={roleFocus === "frontend"}
             onClick={() => {
@@ -303,11 +324,13 @@ export function JobList({ jobs, signedIn }: JobListProps) {
                 >
                   <option value="all">All statuses</option>
                   <option value="untracked">Untracked</option>
-                  {APPLICATION_STATUSES.map((value) => (
-                    <option key={value} value={value}>
-                      {APPLICATION_STATUS_LABELS[value]}
-                    </option>
-                  ))}
+                  {APPLICATION_STATUSES.filter((value) => value !== "rejected").map(
+                    (value) => (
+                      <option key={value} value={value}>
+                        {APPLICATION_STATUS_LABELS[value]}
+                      </option>
+                    ),
+                  )}
                 </select>
               </label>
             ) : null}
@@ -360,7 +383,11 @@ export function JobList({ jobs, signedIn }: JobListProps) {
               ? signedIn
                 ? "No jobs yet. Sync from Remotive or add one manually."
                 : "No jobs yet — check back soon."
-              : "No jobs match your filters."}
+              : signedIn &&
+                  activeFilterCount === 0 &&
+                  jobs.every((job) => job.applicationStatus === "rejected")
+                ? "Nothing open here. Passed roles are in My jobs."
+                : "No jobs match your filters."}
           </li>
         ) : (
           pageJobs.map((job) => (
@@ -371,6 +398,7 @@ export function JobList({ jobs, signedIn }: JobListProps) {
                     <h3 className="truncate font-medium text-slate-900 group-hover:underline">
                       {job.title}
                     </h3>
+                    {job.isNew ? <NewBadge /> : null}
                     {job.source === "remotive" ? (
                       <span className="rounded-md bg-teal-50 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-teal-800 uppercase ring-1 ring-teal-200 ring-inset">
                         Remotive
@@ -430,7 +458,10 @@ export function JobList({ jobs, signedIn }: JobListProps) {
       </ul>
 
       {filteredJobs.length > PAGE_SIZE ? (
-        <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3">
+        <nav
+          aria-label="Pagination"
+          className="flex items-center justify-center gap-1 border-t border-slate-100 px-3 py-3"
+        >
           <button
             type="button"
             disabled={currentPage <= 1}
@@ -439,9 +470,27 @@ export function JobList({ jobs, signedIn }: JobListProps) {
           >
             Previous
           </button>
-          <p className="text-sm text-slate-500">
-            Page {currentPage} of {totalPages}
-          </p>
+          {paginationItems(currentPage, totalPages).map((item, index) =>
+            item === "gap" ? (
+              <span key={`gap-${index}`} className="px-1 text-sm text-slate-400" aria-hidden>
+                …
+              </span>
+            ) : (
+              <button
+                key={item}
+                type="button"
+                aria-current={item === currentPage ? "page" : undefined}
+                onClick={() => setPage(item)}
+                className={
+                  item === currentPage
+                    ? "h-8 min-w-8 rounded-lg bg-slate-900 px-2 text-sm font-medium text-white"
+                    : "h-8 min-w-8 rounded-lg px-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                }
+              >
+                {item}
+              </button>
+            ),
+          )}
           <button
             type="button"
             disabled={currentPage >= totalPages}
@@ -450,7 +499,7 @@ export function JobList({ jobs, signedIn }: JobListProps) {
           >
             Next
           </button>
-        </div>
+        </nav>
       ) : null}
     </section>
   );

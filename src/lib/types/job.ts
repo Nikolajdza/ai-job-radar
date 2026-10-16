@@ -32,6 +32,8 @@ export type JobListing = {
   matchScore: number | null;
   saved: boolean;
   notes: string | null;
+  /** True when this Remotive job arrived in the latest catalog refresh. */
+  isNew?: boolean;
 };
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {

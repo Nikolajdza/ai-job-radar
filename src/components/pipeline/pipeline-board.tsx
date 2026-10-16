@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { MatchScore } from "@/components/dashboard/match-score";
 import { ApplyButton } from "@/components/jobs/apply-button";
+import { NewBadge } from "@/components/jobs/new-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { StatusSelect } from "@/components/jobs/status-select";
 import {
@@ -89,9 +90,12 @@ export function PipelineBoard({
           {visible.map((job) => (
             <li key={job.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
               <div className="min-w-0 flex-1">
-                <Link href={`/jobs/${job.id}`} className="font-medium text-slate-900 hover:underline">
-                  {job.title}
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={`/jobs/${job.id}`} className="font-medium text-slate-900 hover:underline">
+                    {job.title}
+                  </Link>
+                  {job.isNew ? <NewBadge /> : null}
+                </div>
                 <p className="mt-0.5 truncate text-sm text-slate-500">
                   {job.company} · {job.location} · {WORK_FORMAT_LABELS[job.workFormat]}
                 </p>

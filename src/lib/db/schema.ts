@@ -128,6 +128,14 @@ export const jobs = pgTable("jobs", {
     .defaultNow(),
 });
 
+/** One row per catalog refresh. Jobs created in the latest run show as New. */
+export const catalogSyncs = pgTable("catalog_syncs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  source: varchar("source", { length: 50 }).notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  createdCount: integer("created_count").notNull().default(0),
+});
+
 /** Per-user pipeline state for a job (saved, status, notes). */
 export const jobTracking = pgTable(
   "job_tracking",
