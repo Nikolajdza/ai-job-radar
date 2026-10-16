@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LogoMark } from "@/components/ui/logo";
 import { getCurrentUser } from "@/lib/session";
 
-export function AppHeader({ currentPath }: { currentPath: string }) {
+export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/75 backdrop-blur-md dark:border-white/10 dark:bg-white/30 dark:backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
@@ -19,7 +19,7 @@ export function AppHeader({ currentPath }: { currentPath: string }) {
         <div className="flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
           <Suspense fallback={<div className="h-9 w-40" aria-hidden />}>
-            <HeaderAuth currentPath={currentPath} />
+            <HeaderAuth />
           </Suspense>
         </div>
       </div>
@@ -27,7 +27,7 @@ export function AppHeader({ currentPath }: { currentPath: string }) {
   );
 }
 
-async function HeaderAuth({ currentPath }: { currentPath: string }) {
+async function HeaderAuth() {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -51,7 +51,7 @@ async function HeaderAuth({ currentPath }: { currentPath: string }) {
 
   return (
     <div className="flex items-center gap-2 sm:gap-4">
-      <Nav currentPath={currentPath} />
+      <Nav />
       <UserMenu user={user} />
     </div>
   );

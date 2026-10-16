@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { AppHeader } from "@/components/dashboard/app-header";
 import { MatchScore } from "@/components/dashboard/match-score";
 import { OriginalListingLink } from "@/components/jobs/apply-button";
 import { CoverLetterStudio } from "@/components/jobs/cover-letter-studio";
@@ -25,18 +24,15 @@ export const metadata: Metadata = {
 
 export default function ApplyPage({ params }: PageProps<"/jobs/[id]/apply">) {
   return (
-    <>
-      <AppHeader currentPath="/jobs" />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
-        <Suspense
-          fallback={
-            <div className="h-[32rem] animate-pulse rounded-2xl border border-slate-200 bg-white" />
-          }
-        >
-          <ApplyContent params={params} />
-        </Suspense>
-      </main>
-    </>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
+      <Suspense
+        fallback={
+          <div className="h-[32rem] animate-pulse rounded-2xl border border-slate-200 bg-white" />
+        }
+      >
+        <ApplyContent params={params} />
+      </Suspense>
+    </main>
   );
 }
 

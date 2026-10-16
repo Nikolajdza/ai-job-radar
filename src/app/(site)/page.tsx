@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AiProviderBadge } from "@/components/dashboard/ai-provider-badge";
-import { AppHeader } from "@/components/dashboard/app-header";
 import { AutomationStatus } from "@/components/dashboard/automation-status";
 import { JobList } from "@/components/dashboard/job-list";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -23,7 +22,6 @@ import type { JobListing } from "@/lib/types/job";
 export default function Home() {
   return (
     <>
-      <AppHeader currentPath="/" />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-4 py-8 sm:px-6">
         <Suspense fallback={<HomeSkeleton />}>
           <HomeContent />
