@@ -33,7 +33,6 @@ export function SyncRemotiveButton() {
         created?: number;
         skippedDuplicates?: number;
         fetched?: number;
-        focus?: string;
       } | null;
 
       if (!response.ok) {
@@ -57,8 +56,8 @@ export function SyncRemotiveButton() {
   const busy = loading || pending;
 
   return (
-    <div className="flex flex-col items-stretch gap-2 sm:items-end">
-      <div className="flex flex-wrap items-center justify-end gap-2">
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex items-center gap-2">
         <label className="sr-only" htmlFor="remotive-focus">
           Sync focus
         </label>
@@ -67,7 +66,7 @@ export function SyncRemotiveButton() {
           value={focus}
           disabled={busy}
           onChange={(event) => setFocus(event.target.value as RemotiveFocus)}
-          className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm text-slate-800"
+          className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-800"
         >
           {REMOTIVE_FOCUSES.map((value) => (
             <option key={value} value={value}>
@@ -81,19 +80,17 @@ export function SyncRemotiveButton() {
             void onSync();
           }}
           disabled={busy}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+          className="h-9 shrink-0 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
         >
-          {busy ? "Syncing…" : "Sync from Remotive"}
+          {busy ? "Syncing…" : "Sync Remotive"}
         </button>
       </div>
-      <p className="max-w-sm text-right text-xs text-slate-400">
-        Pulls up to 60 software jobs from Remotive (filtered locally). Use
-        Frontend only if you want a narrower board.
-      </p>
       {message ? (
-        <p className="text-xs text-emerald-700">{message}</p>
+        <p className="max-w-xs text-right text-xs text-emerald-700">{message}</p>
       ) : null}
-      {error ? <p className="text-xs text-rose-600">{error}</p> : null}
+      {error ? (
+        <p className="max-w-xs text-right text-xs text-rose-600">{error}</p>
+      ) : null}
     </div>
   );
 }

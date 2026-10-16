@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { AiProviderBadge } from "@/components/dashboard/ai-provider-badge";
 import { AppHeader } from "@/components/dashboard/app-header";
 import { AutomationStatus } from "@/components/dashboard/automation-status";
 import { JobList } from "@/components/dashboard/job-list";
@@ -23,17 +24,18 @@ export default function Home() {
               Track roles, sync remote listings, and run AI match analysis
               against your profile.
             </p>
-          </div>
-          <div className="flex flex-col items-stretch gap-2 sm:items-end">
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/jobs/new"
-                className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
-              >
-                Add job
-              </Link>
-              <SyncRemotiveButton />
+            <div className="mt-2">
+              <AiProviderBadge />
             </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Link
+              href="/jobs/new"
+              className="inline-flex h-9 items-center rounded-lg bg-slate-900 px-3 text-sm font-medium text-white hover:bg-slate-800"
+            >
+              Add job
+            </Link>
+            <SyncRemotiveButton />
           </div>
         </div>
 

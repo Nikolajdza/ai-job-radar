@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { MatchScore } from "@/components/dashboard/match-score";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ApplyButton } from "@/components/jobs/apply-button";
 import { STRONG_MATCH_THRESHOLD } from "@/lib/dashboard-stats";
+import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import {
   filterJobs,
   type JobSort,
   type RoleFocusFilter,
 } from "@/lib/jobs/filter";
+import {
+  matchSearchSuggestions,
+  type SearchSuggestion,
+} from "@/lib/jobs/search-suggestions";
 import {
   APPLICATION_STATUS_LABELS,
   APPLICATION_STATUSES,
@@ -21,6 +26,7 @@ import {
 } from "@/lib/types/job";
 
 const PAGE_SIZE = 8;
+const SEARCH_DEBOUNCE_MS = 300;
 
 type JobListProps = {
   jobs: JobListing[];
@@ -37,7 +43,8 @@ function formatDate(iso: string): string {
 }
 
 export function JobList({ jobs }: JobListProps) {
-  const [query, setQuery] = useState("");
+  const [queryInput, setQueryInput] = useState("");
+  const debouncedQuery = useDebouncedValue(queryInput, SEARCH_DEBOUNCE_MS);
   const [status, setStatus] = useState<StatusFilter>("all");
   const [workFormat, setWorkFormat] = useState<WorkFormatFilter>("all");
   const [roleFocus, setRoleFocus] = useState<RoleFocusFilter>("all");
@@ -46,11 +53,12 @@ export function JobList({ jobs }: JobListProps) {
   const [sort, setSort] = useState<JobSort>("newest");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
 
   const filteredJobs = useMemo(
     () =>
       filterJobs(jobs, {
-        query,
+        query: debouncedQuery,
         status,
         workFormat,
         roleFocus,
@@ -61,7 +69,7 @@ export function JobList({ jobs }: JobListProps) {
       }),
     [
       jobs,
-      query,
+      debouncedQuery,
       status,
       workFormat,
       roleFocus,
@@ -99,25 +107,37 @@ export function JobList({ jobs }: JobListProps) {
     resetPage();
   }
 
+  function applySuggestion(suggestion: SearchSuggestion) {
+    setQueryInput(suggestion.query);
+    if (suggestion.roleFocus) {
+      setRoleFocus(suggestion.roleFocus);
+    }
+    setSuggestionsOpen(false);
+    resetPage();
+  }
+
+  const searchPending =
+    queryInput.trim() !== debouncedQuery.trim() && queryInput.trim().length > 0;
+
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <div className="space-y-4 border-b border-slate-100 px-5 py-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative min-w-0 flex-1">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-              <SearchIcon />
-            </span>
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                resetPage();
-              }}
-              placeholder="Search roles, companies, locations…"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
-            />
-          </div>
+          <SearchField
+            value={queryInput}
+            onChange={(value) => {
+              setQueryInput(value);
+              setSuggestionsOpen(true);
+            }}
+            onFocus={() => setSuggestionsOpen(true)}
+            onBlur={() => {
+              // Delay so suggestion click registers.
+              window.setTimeout(() => setSuggestionsOpen(false), 120);
+            }}
+            suggestionsOpen={suggestionsOpen}
+            onSelectSuggestion={applySuggestion}
+            pending={searchPending}
+          />
 
           <div className="flex flex-wrap items-center gap-2">
             <select
@@ -126,7 +146,7 @@ export function JobList({ jobs }: JobListProps) {
                 setSort(event.target.value as JobSort);
                 resetPage();
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
               aria-label="Sort jobs"
             >
               <option value="newest">Newest</option>
@@ -138,7 +158,7 @@ export function JobList({ jobs }: JobListProps) {
             <button
               type="button"
               onClick={() => setFiltersOpen((open) => !open)}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Filters
               {activeFilterCount > 0 ? (
@@ -306,6 +326,7 @@ export function JobList({ jobs }: JobListProps) {
           {(currentPage - 1) * PAGE_SIZE + pageJobs.length} of{" "}
           {filteredJobs.length}
           {activeFilterCount > 0 ? " · filters active" : ""}
+          {searchPending ? " · updating…" : ""}
         </p>
       </div>
 
@@ -391,6 +412,83 @@ export function JobList({ jobs }: JobListProps) {
         </div>
       ) : null}
     </section>
+  );
+}
+
+function SearchField({
+  value,
+  onChange,
+  onFocus,
+  onBlur,
+  suggestionsOpen,
+  onSelectSuggestion,
+  pending,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onFocus: () => void;
+  onBlur: () => void;
+  suggestionsOpen: boolean;
+  onSelectSuggestion: (suggestion: SearchSuggestion) => void;
+  pending: boolean;
+}) {
+  const listId = useId();
+  const suggestions = matchSearchSuggestions(value);
+  const showList = suggestionsOpen && suggestions.length > 0;
+
+  return (
+    <div className="relative min-w-0 flex-1">
+      <span className="pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-slate-400">
+        <SearchIcon />
+      </span>
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        placeholder="Try frontend, react, typescript…"
+        autoComplete="off"
+        role="combobox"
+        aria-expanded={showList}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-10 pl-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200"
+      />
+      {pending ? (
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] text-slate-400">
+          …
+        </span>
+      ) : null}
+
+      {showList ? (
+        <ul
+          id={listId}
+          role="listbox"
+          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+        >
+          {suggestions.map((suggestion) => (
+            <li
+              key={`${suggestion.label}-${suggestion.query}`}
+              role="option"
+              aria-selected={false}
+            >
+              <button
+                type="button"
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  onSelectSuggestion(suggestion);
+                }}
+              >
+                <span>{suggestion.label}</span>
+                <span className="text-xs text-slate-400">{suggestion.query}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
