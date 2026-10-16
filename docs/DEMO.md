@@ -4,12 +4,13 @@ Use this for portfolio screenshots and interview walkthroughs.
 
 ## Local happy path (5–7 minutes)
 
-1. `npm run db:up && npm run db:push && npm run db:seed && npm run dev`
-2. Dashboard summary cards + job table with filters/sort
-3. Open a job → **Analyze with AI** (mock) → show structured result
-4. Change application status and save notes
-5. Edit `/profile` (location includes Belgrade)
-6. Optional: `npm run n8n:up`, import `n8n/workflows/job-ingest.json`, execute once, show Signal Forge on the dashboard, execute again to show duplicate prevention
+1. `npm run db:up && npm run db:upgrade && npm run db:seed && npm run dev`
+2. Signed out: landing page, browse jobs, open a job page (sign-in prompt)
+3. Sign up (email or GitHub/Google) → upload a PDF CV on `/profile` → review AI-filled fields → save
+4. Open a job → **Get AI match** → show score, gaps, CV tips
+5. **Prepare & apply** → generate a cover letter, edit, copy, mark as applied
+6. Dashboard summary cards + filters (Strong matches, Saved, To apply)
+7. Optional: `npm run n8n:up`, import `n8n/workflows/job-ingest.json`, execute once, show Signal Forge on the dashboard, execute again to show duplicate prevention
 
 ## Screenshot set
 

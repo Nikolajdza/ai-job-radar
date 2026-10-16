@@ -24,6 +24,8 @@ export type JobListing = {
   sourceUrl: string;
   /** manual | remotive | n8n */
   source: string;
+  /** Set for private manual jobs; null for the public catalog. */
+  ownerUserId?: string | null;
   createdAt: string;
   applicationStatus: ApplicationStatus | null;
   /** Approximate heuristic match score from AI analysis, when available. */

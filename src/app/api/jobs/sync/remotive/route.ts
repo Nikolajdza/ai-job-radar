@@ -4,6 +4,7 @@ import {
   type RemotiveFocus,
 } from "@/lib/jobs/sources/remotive";
 import { syncRemotiveJobs } from "@/lib/jobs/sources/remotive-sync";
+import { requireRequestUser } from "@/lib/session";
 import { z } from "zod";
 
 const syncBodySchema = z
@@ -23,6 +24,7 @@ const syncBodySchema = z
  */
 export async function POST(request: Request) {
   try {
+    await requireRequestUser(request);
     const json = await request.json().catch(() => ({}));
     const body = syncBodySchema.parse(json);
     const result = await syncRemotiveJobs(body);

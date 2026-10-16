@@ -1,16 +1,42 @@
+import Link from "next/link";
+
 type ApplyButtonProps = {
+  jobId: string;
+  className?: string;
+  label?: string;
+};
+
+/** Opens the Application kit (cover letter + checklist). Never auto-submits. */
+export function ApplyButton({
+  jobId,
+  className,
+  label = "Prepare & apply",
+}: ApplyButtonProps) {
+  return (
+    <Link
+      href={`/jobs/${jobId}/apply`}
+      className={
+        className ??
+        "inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700"
+      }
+    >
+      {label}
+      <span aria-hidden>→</span>
+    </Link>
+  );
+}
+
+type OriginalListingLinkProps = {
   href: string;
   source?: string;
   className?: string;
 };
 
-/**
- * Opens the real job posting. Never auto-submits an application.
- */
-export function ApplyButton({ href, source, className }: ApplyButtonProps) {
-  const label =
-    source === "remotive" ? "Apply on Remotive" : "Apply on listing site";
-
+export function OriginalListingLink({
+  href,
+  source,
+  className,
+}: OriginalListingLinkProps) {
   return (
     <a
       href={href}
@@ -18,10 +44,11 @@ export function ApplyButton({ href, source, className }: ApplyButtonProps) {
       rel="noreferrer"
       className={
         className ??
-        "inline-flex items-center justify-center rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-800"
+        "inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
       }
     >
-      {label}
+      {source === "remotive" ? "Open on Remotive" : "Open original listing"}
+      <span aria-hidden>↗</span>
       <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );

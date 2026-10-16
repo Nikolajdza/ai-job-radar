@@ -1,53 +1,67 @@
 # Deploy guide (free-tier oriented)
 
-This project can run fully locally at zero cost. A public demo typically uses:
+A public demo uses:
 
 - **Vercel Hobby** for the Next.js app
-- **Supabase free tier** for PostgreSQL
-- **n8n** kept local (or a separate host if you later choose one)
+- **Supabase free tier** for PostgreSQL (use the **Transaction pooler** URI, port 6543)
+- **Groq free tier** for real AI (or mock mode with no key)
+- **n8n** kept local
 
-Free-tier limits change over time. Check current Vercel and Supabase plan terms before relying on them.
+Free-tier limits change over time. Check current plan terms before relying on them.
 
 ## What requires credentials
 
-| Feature | Local mock | Deployed demo |
-| ------- | ---------- | ------------- |
-| Dashboard + CRUD | No paid key | Supabase DB URL |
-| AI analysis | `AI_PROVIDER=mock` | Optional `groq` (free tier) or `openai` |
-| n8n automation | Docker on laptop | Not required for a basic Vercel demo |
-| Daily Remotive sync | Manual button | Optional Vercel Cron + `CRON_SECRET` |
+| Feature             | Local                   | Deployed demo                          |
+| ------------------- | ----------------------- | -------------------------------------- |
+| Dashboard + CRUD    | Docker Postgres         | Supabase pooler URI                    |
+| Accounts            | `BETTER_AUTH_SECRET`    | `BETTER_AUTH_SECRET` + `BETTER_AUTH_URL` |
+| GitHub / Google     | Optional OAuth apps     | Optional OAuth apps (prod callback URLs) |
+| AI                  | `AI_PROVIDER=mock`      | `groq` (free) or `openai`              |
+| Daily Remotive sync | Manual button           | Vercel Cron + `CRON_SECRET`            |
 
-## Before you deploy
+## Database schema
 
-1. Create a Supabase project and copy the Postgres connection string.
-2. Apply the schema (`npm run db:push` or run SQL from `drizzle/`).
-3. Seed if desired (`DATABASE_URL=... npm run db:seed`).
-4. Create a Vercel project from this repo.
-5. Set environment variables in Vercel:
+Apply migrations against Supabase from your laptop (the script baselines databases that were created with `db:push`):
 
 ```bash
-DATABASE_URL=postgresql://...   # Supabase pooler URI preferred
-AI_PROVIDER=mock
-# Free-tier LLM (recommended for demos with real AI):
-# AI_PROVIDER=groq
-# GROQ_API_KEY=gsk_...
-# Optional paid:
-# AI_PROVIDER=openai
-# OPENAI_API_KEY=...
-# Cron (Hobby): set CRON_SECRET so GET /api/jobs/sync/remotive is protected
-# CRON_SECRET=long-random-string
+mv .env.local .env.local.bak            # so the Supabase URL below wins
+export DATABASE_URL='postgresql://postgres.<project>:<password>@aws-1-eu-central-1.pooler.supabase.com:6543/postgres'
+npm run db:upgrade
+npm run db:seed                         # optional sample catalog
+unset DATABASE_URL && mv .env.local.bak .env.local
 ```
 
-6. Deploy. Confirm `/` loads and `/profile` can read/write.
-7. On the dashboard, sync with focus **All software** (not Frontend-only) to fill the board.
+## Vercel environment variables
+
+```bash
+DATABASE_URL=postgresql://...pooler.supabase.com:6543/postgres
+BETTER_AUTH_SECRET=<openssl rand -base64 32>
+BETTER_AUTH_URL=https://<your-app>.vercel.app
+AI_PROVIDER=groq
+GROQ_API_KEY=gsk_...
+CRON_SECRET=<long random string>
+# Optional social login
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+```
+
+Redeploy after changing variables.
+
+## OAuth apps
+
+- **GitHub** → Settings → Developer settings → OAuth Apps → New.
+  Homepage `https://<your-app>.vercel.app`, callback `https://<your-app>.vercel.app/api/auth/callback/github`.
+  GitHub allows one callback per app, so create a second app for `http://localhost:3000` if you want it locally.
+- **Google** → Cloud Console → APIs & Services → Credentials → OAuth client ID (Web application).
+  Authorized redirect URIs: `https://<your-app>.vercel.app/api/auth/callback/google` and `http://localhost:3000/api/auth/callback/google`.
+  Configure the consent screen (External, testing mode is fine for a demo; add your Google account as a test user).
 
 ## Important limitations
 
 - Do **not** commit `.env.local` or real API keys.
-- Exposing `/api/webhooks/jobs` publicly requires a strong secret and ideally network restrictions.
-- A continuously running public n8n instance is outside the zero-cost MVP path.
-- OpenAI usage is metered; keep mock mode for demos when possible.
-
-## Suggested demo mode for interviews
-
-Use mock AI + seeded data on Vercel/Supabase. Mention that the OpenAI provider and n8n workflow are implemented and documented for local use.
+- Avatars are stored as small data URLs in Postgres (resized client-side) — no file storage needed.
+- PDF import needs text-based PDFs; scanned images have no extractable text.
+- Exposing `/api/webhooks/jobs` publicly requires a strong secret.
+- OpenAI usage is metered; Groq free tier is rate-limited.

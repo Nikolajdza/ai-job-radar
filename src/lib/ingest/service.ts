@@ -1,9 +1,9 @@
-import {
-  analyzeJob,
-  getAnalysisForJob,
-} from "@/lib/ai/service";
+import { eq } from "drizzle-orm";
+import { analyzeJob, getAnalysisForJob } from "@/lib/ai/service";
 import type { StoredJobAnalysis } from "@/lib/ai/schema";
 import { STRONG_MATCH_THRESHOLD } from "@/lib/dashboard-stats";
+import { getDb } from "@/lib/db";
+import { user } from "@/lib/db/schema";
 import { createJobIdempotent } from "@/lib/jobs/service";
 import type { JobListing } from "@/lib/types/job";
 import type { IngestJobInput } from "@/lib/validation/ingest";
@@ -20,6 +20,9 @@ export type IngestJobResult = {
 /**
  * Idempotent ingest path used by n8n:
  * validate → persist (or reuse) → optional AI analysis → report strong match.
+ *
+ * Analysis is per user, so it only runs when INGEST_USER_EMAIL points at an
+ * existing account.
  */
 export async function ingestJob(input: IngestJobInput): Promise<IngestJobResult> {
   const { analyze, forceAnalyze, ...jobInput } = input;
@@ -28,33 +31,48 @@ export async function ingestJob(input: IngestJobInput): Promise<IngestJobResult>
     ...jobInput,
     source: "n8n",
     notes: null,
-    applicationStatus: jobInput.saved === false ? null : "interesting",
+    applicationStatus: null,
+    saved: false,
   });
 
-  let analysis = await getAnalysisForJob(job.id);
+  const ingestUserId = await resolveIngestUserId();
+  let analysis = ingestUserId
+    ? await getAnalysisForJob(job.id, ingestUserId)
+    : null;
   let analyzed = false;
 
   const shouldAnalyze =
-    analyze && (forceAnalyze || created || analysis === null);
+    Boolean(ingestUserId) &&
+    analyze &&
+    (forceAnalyze || created || analysis === null);
 
-  if (shouldAnalyze) {
-    analysis = await analyzeJob(job.id);
+  if (shouldAnalyze && ingestUserId) {
+    analysis = await analyzeJob(job.id, ingestUserId);
     analyzed = true;
   }
 
-  const score = analysis?.matchScore ?? job.matchScore;
+  const score = analysis?.matchScore ?? null;
   const strongMatch =
     typeof score === "number" && score >= STRONG_MATCH_THRESHOLD;
 
   return {
-    job: {
-      ...job,
-      matchScore: score ?? job.matchScore,
-    },
+    job: { ...job, matchScore: score },
     analysis,
     created,
     analyzed,
     strongMatch,
     duplicatePrevented: !created,
   };
+}
+
+async function resolveIngestUserId(): Promise<string | null> {
+  const email = process.env.INGEST_USER_EMAIL?.trim().toLowerCase();
+  if (!email) return null;
+  const db = getDb();
+  const [row] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, email))
+    .limit(1);
+  return row?.id ?? null;
 }

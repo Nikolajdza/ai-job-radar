@@ -1,38 +1,30 @@
-import { createGroqAnalysisProvider } from "@/lib/ai/providers/groq";
-import { createOpenAiAnalysisProvider } from "@/lib/ai/providers/openai";
+import { generateStructured, getLlm } from "@/lib/ai/llm";
+import {
+  ANALYSIS_SYSTEM_PROMPT,
+  buildAnalysisUserPrompt,
+} from "@/lib/ai/prompts";
 import { mockAnalysisProvider } from "@/lib/ai/providers/mock";
 import type { AnalysisProvider } from "@/lib/ai/providers/types";
-import { getAiEnv } from "@/lib/env";
+import { jobAnalysisSchema } from "@/lib/ai/schema";
 
 /** Resolve the configured analysis provider. Defaults to mock (no API cost). */
 export function getAnalysisProvider(): AnalysisProvider {
-  const env = getAiEnv();
+  const llm = getLlm();
+  if (!llm) return mockAnalysisProvider;
 
-  if (env.AI_PROVIDER === "openai") {
-    if (!env.OPENAI_API_KEY) {
-      throw new Error(
-        "AI_PROVIDER=openai requires OPENAI_API_KEY. Use AI_PROVIDER=mock or groq.",
-      );
-    }
-
-    return createOpenAiAnalysisProvider({
-      apiKey: env.OPENAI_API_KEY,
-      model: env.OPENAI_MODEL,
-    });
-  }
-
-  if (env.AI_PROVIDER === "groq") {
-    if (!env.GROQ_API_KEY) {
-      throw new Error(
-        "AI_PROVIDER=groq requires GROQ_API_KEY. Use AI_PROVIDER=mock without a key.",
-      );
-    }
-
-    return createGroqAnalysisProvider({
-      apiKey: env.GROQ_API_KEY,
-      model: env.GROQ_MODEL,
-    });
-  }
-
-  return mockAnalysisProvider;
+  return {
+    name: llm.provider,
+    async analyze(request) {
+      const result = await generateStructured(llm, {
+        schema: jobAnalysisSchema,
+        system: ANALYSIS_SYSTEM_PROMPT,
+        prompt: buildAnalysisUserPrompt(request),
+      });
+      return {
+        analysis: result.output,
+        provider: result.provider,
+        model: result.model,
+      };
+    },
+  };
 }

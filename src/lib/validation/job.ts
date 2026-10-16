@@ -51,7 +51,6 @@ export const updateJobSchema = z
       .nullable()
       .optional()
       .transform((value) => (value === undefined ? undefined : value || null)),
-    matchScore: z.number().int().min(0).max(100).nullable().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one field is required",

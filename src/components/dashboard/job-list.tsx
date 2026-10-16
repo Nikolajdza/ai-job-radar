@@ -30,6 +30,8 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 type JobListProps = {
   jobs: JobListing[];
+  /** Visitors only browse; tracking, match filters, and apply kit need an account. */
+  signedIn: boolean;
 };
 
 type StatusFilter = ApplicationStatus | "untracked" | "all";
@@ -42,7 +44,7 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
-export function JobList({ jobs }: JobListProps) {
+export function JobList({ jobs, signedIn }: JobListProps) {
   const [queryInput, setQueryInput] = useState("");
   const debouncedQuery = useDebouncedValue(queryInput, SEARCH_DEBOUNCE_MS);
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -151,8 +153,12 @@ export function JobList({ jobs }: JobListProps) {
             >
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
-              <option value="match_desc">Best match</option>
-              <option value="match_asc">Lowest match</option>
+              {signedIn ? (
+                <>
+                  <option value="match_desc">Best match</option>
+                  <option value="match_asc">Lowest match</option>
+                </>
+              ) : null}
             </select>
 
             <button
@@ -216,24 +222,28 @@ export function JobList({ jobs }: JobListProps) {
           >
             Backend
           </Chip>
-          <Chip
-            active={strongMatchesOnly}
-            onClick={() => {
-              setStrongMatchesOnly((value) => !value);
-              resetPage();
-            }}
-          >
-            Strong matches
-          </Chip>
-          <Chip
-            active={savedOnly}
-            onClick={() => {
-              setSavedOnly((value) => !value);
-              resetPage();
-            }}
-          >
-            Saved
-          </Chip>
+          {signedIn ? (
+            <>
+              <Chip
+                active={strongMatchesOnly}
+                onClick={() => {
+                  setStrongMatchesOnly((value) => !value);
+                  resetPage();
+                }}
+              >
+                Strong matches
+              </Chip>
+              <Chip
+                active={savedOnly}
+                onClick={() => {
+                  setSavedOnly((value) => !value);
+                  resetPage();
+                }}
+              >
+                Saved
+              </Chip>
+            </>
+          ) : null}
           <Chip
             active={workFormat === "remote"}
             onClick={() => {
@@ -243,51 +253,59 @@ export function JobList({ jobs }: JobListProps) {
           >
             Remote
           </Chip>
-          <Chip
-            active={status === "to_apply"}
-            onClick={() => {
-              setStatus((value) => (value === "to_apply" ? "all" : "to_apply"));
-              resetPage();
-            }}
-          >
-            To apply
-          </Chip>
-          <Chip
-            active={status === "interview"}
-            onClick={() => {
-              setStatus((value) =>
-                value === "interview" ? "all" : "interview",
-              );
-              resetPage();
-            }}
-          >
-            Interview
-          </Chip>
+          {signedIn ? (
+            <>
+              <Chip
+                active={status === "to_apply"}
+                onClick={() => {
+                  setStatus((value) =>
+                    value === "to_apply" ? "all" : "to_apply",
+                  );
+                  resetPage();
+                }}
+              >
+                To apply
+              </Chip>
+              <Chip
+                active={status === "interview"}
+                onClick={() => {
+                  setStatus((value) =>
+                    value === "interview" ? "all" : "interview",
+                  );
+                  resetPage();
+                }}
+              >
+                Interview
+              </Chip>
+            </>
+          ) : null}
         </div>
 
         {filtersOpen ? (
           <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
-            <label className="block text-sm">
-              <span className="mb-1.5 block font-medium text-slate-600">
-                Pipeline status
-              </span>
-              <select
-                value={status}
-                onChange={(event) => {
-                  setStatus(event.target.value as StatusFilter);
-                  resetPage();
-                }}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-              >
-                <option value="all">All statuses</option>
-                <option value="untracked">Untracked</option>
-                {APPLICATION_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {APPLICATION_STATUS_LABELS[value]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {signedIn ? (
+              <label className="block text-sm">
+                <span className="mb-1.5 block font-medium text-slate-600">
+                  Pipeline status
+                </span>
+                <select
+                  value={status}
+                  onChange={(event) => {
+                    setStatus(event.target.value as StatusFilter);
+                    resetPage();
+                  }}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                >
+                  <option value="all">All statuses</option>
+                  <option value="untracked">Untracked</option>
+                  {APPLICATION_STATUSES.map((value) => (
+                    <option key={value} value={value}>
+                      {APPLICATION_STATUS_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
 
             <label className="block text-sm">
               <span className="mb-1.5 block font-medium text-slate-600">
@@ -334,7 +352,9 @@ export function JobList({ jobs }: JobListProps) {
         {pageJobs.length === 0 ? (
           <li className="px-5 py-12 text-center text-sm text-slate-500">
             {jobs.length === 0
-              ? "No jobs yet. Sync from Remotive or add one manually."
+              ? signedIn
+                ? "No jobs yet. Sync from Remotive or add one manually."
+                : "No jobs yet — check back soon."
               : "No jobs match your filters."}
           </li>
         ) : (
@@ -370,17 +390,30 @@ export function JobList({ jobs }: JobListProps) {
 
                 <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                   <div className="mr-1 flex flex-col items-start gap-1 sm:items-end">
-                    <MatchScore score={job.matchScore} />
-                    <StatusBadge status={job.applicationStatus} />
+                    {signedIn ? (
+                      <>
+                        <MatchScore score={job.matchScore} />
+                        <StatusBadge status={job.applicationStatus} />
+                      </>
+                    ) : null}
                     <span className="text-[11px] text-slate-400">
                       {formatDate(job.createdAt)}
                     </span>
                   </div>
-                  <ApplyButton
-                    href={job.sourceUrl}
-                    source={job.source}
-                    className="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-800"
-                  />
+                  {signedIn ? (
+                    <ApplyButton
+                      jobId={job.id}
+                      label="Apply kit"
+                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                    />
+                  ) : (
+                    <Link
+                      href={`/jobs/${job.id}`}
+                      className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      View job
+                    </Link>
+                  )}
                 </div>
               </div>
             </li>

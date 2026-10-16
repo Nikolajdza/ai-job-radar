@@ -52,9 +52,9 @@ export function getAiEnv(): AiEnv {
   const parsed = aiEnvSchema.safeParse({
     AI_PROVIDER: process.env.AI_PROVIDER ?? "mock",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || undefined,
-    OPENAI_MODEL: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+    OPENAI_MODEL: process.env.OPENAI_MODEL || undefined,
     GROQ_API_KEY: process.env.GROQ_API_KEY || undefined,
-    GROQ_MODEL: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
+    GROQ_MODEL: process.env.GROQ_MODEL || undefined,
   });
 
   if (!parsed.success) {
@@ -85,4 +85,18 @@ export function getWebhookEnv(): WebhookEnv {
 
   cachedWebhookEnv = parsed.data;
   return cachedWebhookEnv;
+}
+
+export type SocialProviderId = "github" | "google";
+
+/** OAuth providers are enabled only when both client id and secret exist. */
+export function getEnabledSocialProviders(): SocialProviderId[] {
+  const enabled: SocialProviderId[] = [];
+  if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    enabled.push("github");
+  }
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    enabled.push("google");
+  }
+  return enabled;
 }

@@ -19,16 +19,20 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:upgrade": "tsx scripts/db-upgrade.ts"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^4.0.62",
     "@ai-sdk/openai": "^4.0.95",
     "ai": "^7.0.142",
+    "better-auth": "^1.7.10",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.2",
     "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "unpdf": "^1.9.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {

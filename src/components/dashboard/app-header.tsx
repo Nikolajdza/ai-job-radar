@@ -1,19 +1,54 @@
+import Link from "next/link";
+import { Suspense } from "react";
 import { Nav } from "@/components/dashboard/nav";
+import { UserMenu } from "@/components/dashboard/user-menu";
+import { LogoMark } from "@/components/ui/logo";
+import { getCurrentUser } from "@/lib/session";
 
 export function AppHeader({ currentPath }: { currentPath: string }) {
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            Portfolio project
-          </p>
-          <h1 className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link href="/" className="flex items-center gap-2.5">
+          <LogoMark />
+          <span className="text-base font-semibold tracking-tight text-slate-900">
             AI Job Radar
-          </h1>
-        </div>
-        <Nav currentPath={currentPath} />
+          </span>
+        </Link>
+        <Suspense fallback={<div className="h-9 w-40" aria-hidden />}>
+          <HeaderAuth currentPath={currentPath} />
+        </Suspense>
       </div>
     </header>
+  );
+}
+
+async function HeaderAuth({ currentPath }: { currentPath: string }) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return (
+      <div className="flex items-center gap-2">
+        <Link
+          href="/sign-in"
+          className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
+          Sign in
+        </Link>
+        <Link
+          href="/sign-up"
+          className="rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800"
+        >
+          Get started
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 sm:gap-4">
+      <Nav currentPath={currentPath} />
+      <UserMenu user={user} />
+    </div>
   );
 }

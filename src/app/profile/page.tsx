@@ -1,27 +1,33 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AppHeader } from "@/components/dashboard/app-header";
-import { ProfileForm } from "@/components/profile/profile-form";
-import { getCandidateProfile } from "@/lib/profile/service";
+import { ProfileEditor } from "@/components/profile/profile-editor";
+import { getProfileForUser } from "@/lib/profile/service";
+import { requireUser } from "@/lib/session";
+
+export const metadata: Metadata = {
+  title: "Profile · AI Job Radar",
+};
 
 export default function ProfilePage() {
   return (
     <>
       <AppHeader currentPath="/profile" />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Candidate profile
-          </h2>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+            Your profile
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Paste a CV, extract structured fields with AI, review, then save.
-            Job match analysis uses this profile afterward. Auth can come later.
+            Import your CV, polish the details, and every match and cover letter
+            gets sharper.
           </p>
         </div>
 
         <Suspense
           fallback={
-            <div className="h-96 animate-pulse rounded-xl border border-slate-200 bg-white" />
+            <div className="h-96 animate-pulse rounded-2xl border border-slate-200 bg-white" />
           }
         >
           <ProfileContent />
@@ -33,35 +39,8 @@ export default function ProfilePage() {
 
 async function ProfileContent() {
   await connection();
+  const user = await requireUser("/profile");
+  const profile = await getProfileForUser(user);
 
-  let profile: Awaited<ReturnType<typeof getCandidateProfile>> | null = null;
-  let loadError: string | null = null;
-
-  try {
-    profile = await getCandidateProfile();
-  } catch (error) {
-    loadError =
-      error instanceof Error
-        ? error.message
-        : "Could not load candidate profile.";
-  }
-
-  if (loadError || !profile) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        <p className="font-medium">Profile unavailable</p>
-        <p className="mt-1">{loadError}</p>
-        <p className="mt-2">
-          Run <code className="rounded bg-amber-100 px-1">npm run db:seed</code>{" "}
-          after the database is up.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <ProfileForm profile={profile} />
-    </div>
-  );
+  return <ProfileEditor profile={profile} email={user.email} />;
 }
