@@ -29,6 +29,7 @@ const job: JobListing = {
   description:
     "We need React, Next.js, TypeScript, and PostgreSQL experience for our product team.",
   sourceUrl: "https://example.com/jobs/northwind",
+  source: "manual",
   createdAt: "2026-10-01T00:00:00.000Z",
   applicationStatus: null,
   matchScore: null,

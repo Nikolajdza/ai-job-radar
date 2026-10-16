@@ -17,6 +17,7 @@ export function mapJobRow(row: JobRow): JobListing {
     salary: row.salary,
     description: row.description,
     sourceUrl: row.sourceUrl,
+    source: row.source,
     createdAt: row.createdAt.toISOString(),
     applicationStatus: row.applicationStatus,
     matchScore: row.matchScore,

@@ -22,6 +22,8 @@ export type JobListing = {
   salary: string | null;
   description: string;
   sourceUrl: string;
+  /** manual | remotive | n8n */
+  source: string;
   createdAt: string;
   applicationStatus: ApplicationStatus | null;
   /** Approximate heuristic match score from AI analysis, when available. */

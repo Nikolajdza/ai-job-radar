@@ -13,7 +13,14 @@ n8n (local Docker)
   → POST /api/webhooks/jobs
   → ingest service (validate → dedupe/persist → analyze)
   → dashboard
+
+Remotive (public API, no key)
+  → POST /api/jobs/sync/remotive
+  → map + dedupe/persist
+  → dashboard (with Remotive attribution links)
 ```
+
+Remotive terms require linking back to each job URL and crediting Remotive. Keep sync usage light (avoid tight polling loops).
 
 ## Layers
 

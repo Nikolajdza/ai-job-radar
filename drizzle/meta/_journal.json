@@ -15,6 +15,13 @@
       "when": 1792134295614,
       "tag": "0001_groovy_wilson_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792135413973,
+      "tag": "0002_spicy_nuke",
+      "breakpoints": true
     }
   ]
 }

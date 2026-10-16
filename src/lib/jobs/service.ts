@@ -90,6 +90,7 @@ export async function createJob(input: CreateJobInput): Promise<JobListing> {
         salary: input.salary,
         description: input.description,
         sourceUrl: input.sourceUrl,
+        source: input.source ?? "manual",
         dedupeKey,
         applicationStatus: input.applicationStatus ?? null,
         saved: input.saved ?? false,

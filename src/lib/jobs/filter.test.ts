@@ -12,6 +12,7 @@ function job(partial: Partial<JobListing>): JobListing {
     salary: partial.salary ?? null,
     description: partial.description ?? "A sufficiently long description.",
     sourceUrl: partial.sourceUrl ?? "https://example.com/job",
+    source: partial.source ?? "manual",
     createdAt: partial.createdAt ?? "2026-10-01T00:00:00.000Z",
     applicationStatus: partial.applicationStatus ?? null,
     matchScore: partial.matchScore ?? null,

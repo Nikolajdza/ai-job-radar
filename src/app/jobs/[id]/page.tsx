@@ -96,14 +96,31 @@ async function JobDetailContent({
         <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
           {job.description}
         </p>
-        <a
-          href={job.sourceUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-block text-sm font-medium text-slate-900 underline"
-        >
-          Open source listing
-        </a>
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+          <a
+            href={job.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-slate-900 underline"
+          >
+            {job.source === "remotive"
+              ? "Open on Remotive"
+              : "Open source listing"}
+          </a>
+          {job.source === "remotive" ? (
+            <span className="text-xs text-slate-400">
+              Sourced from{" "}
+              <a
+                href="https://remotive.com"
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+              >
+                Remotive
+              </a>
+            </span>
+          ) : null}
+        </div>
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

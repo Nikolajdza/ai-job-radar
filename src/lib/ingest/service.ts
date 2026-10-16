@@ -26,6 +26,7 @@ export async function ingestJob(input: IngestJobInput): Promise<IngestJobResult>
 
   const { job, created } = await createJobIdempotent({
     ...jobInput,
+    source: "n8n",
     notes: null,
     applicationStatus: jobInput.saved === false ? null : "interesting",
   });

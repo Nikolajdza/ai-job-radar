@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AppHeader } from "@/components/dashboard/app-header";
 import { AutomationStatus } from "@/components/dashboard/automation-status";
 import { JobList } from "@/components/dashboard/job-list";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
+import { SyncRemotiveButton } from "@/components/jobs/sync-remotive-button";
 import { getDashboardStats } from "@/lib/dashboard-stats";
 import { listJobs } from "@/lib/jobs/service";
 
@@ -12,14 +14,27 @@ export default function Home() {
     <>
       <AppHeader currentPath="/" />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Dashboard
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm text-slate-500">
-            Jobs and profile data are stored in local PostgreSQL. AI analysis
-            arrives in the next milestone.
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+              Dashboard
+            </h2>
+            <p className="mt-1 max-w-xl text-sm text-slate-500">
+              Track roles, sync remote listings, and run AI match analysis
+              against your profile.
+            </p>
+          </div>
+          <div className="flex flex-col items-stretch gap-2 sm:items-end">
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/jobs/new"
+                className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              >
+                Add job
+              </Link>
+              <SyncRemotiveButton />
+            </div>
+          </div>
         </div>
 
         <Suspense fallback={<DashboardSkeleton />}>
@@ -65,8 +80,8 @@ async function DashboardContent() {
   return (
     <>
       <SummaryCards stats={stats} />
-      <AutomationStatus />
       <JobList jobs={jobs} />
+      <AutomationStatus />
     </>
   );
 }

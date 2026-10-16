@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "source" varchar(50) DEFAULT 'manual' NOT NULL;

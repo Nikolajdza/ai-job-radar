@@ -33,6 +33,8 @@ export const jobs = pgTable("jobs", {
   salary: varchar("salary", { length: 100 }),
   description: text("description").notNull(),
   sourceUrl: text("source_url").notNull(),
+  /** Origin of the listing: manual entry, Remotive sync, or n8n ingest. */
+  source: varchar("source", { length: 50 }).notNull().default("manual"),
   /** Normalized key for duplicate detection (company + title + source). */
   dedupeKey: varchar("dedupe_key", { length: 500 }).notNull().unique(),
   applicationStatus: applicationStatusEnum("application_status"),

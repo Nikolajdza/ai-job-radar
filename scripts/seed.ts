@@ -44,6 +44,7 @@ async function seed() {
       salary: job.salary,
       description: job.description,
       sourceUrl: job.sourceUrl,
+      source: job.source,
       dedupeKey: buildJobDedupeKey({
         company: job.company,
         title: job.title,

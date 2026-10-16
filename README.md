@@ -6,11 +6,11 @@ Learning portfolio project — not a commercial SaaS product. The system never a
 
 ## Current status
 
-**Milestone 5 — Portfolio quality**
+**MVP + Remotive sync**
 
-- Search, status/work-format filters, sorting, and summary stats
-- Vitest coverage for core domain logic (dedupe, filters, validation, mock AI)
-- Architecture, deploy, and demo docs
+- Search, chip filters, sorting, and summary stats
+- Sync remote software jobs from Remotive (free, no API key)
+- Vitest coverage for core domain logic
 - Mock AI by default; optional OpenAI; local n8n automation
 
 ## Requirements

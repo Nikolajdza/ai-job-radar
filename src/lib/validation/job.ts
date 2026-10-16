@@ -13,8 +13,9 @@ export const createJobSchema = z.object({
     .optional()
     .nullable()
     .transform((value) => (value ? value : null)),
-  description: z.string().trim().min(20).max(20_000),
+  description: z.string().trim().min(20).max(50_000),
   sourceUrl: z.string().trim().url().max(2000),
+  source: z.enum(["manual", "remotive", "n8n"]).optional().default("manual"),
   applicationStatus: z.enum(APPLICATION_STATUSES).optional().nullable(),
   saved: z.boolean().optional().default(false),
   notes: z
