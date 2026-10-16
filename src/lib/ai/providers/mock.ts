@@ -27,14 +27,34 @@ export const mockAnalysisProvider: AnalysisProvider = {
       ...request.profile.preferredTechnologies,
     ]);
 
+    const candidateEvidence = [
+      ...profileSkills,
+      request.profile.experienceSummary,
+      request.profile.headline,
+      request.profile.cvText ?? "",
+    ]
+      .join("\n")
+      .toLowerCase();
+
     const matchingSkills = profileSkills.filter((skill) =>
       includesSkill(jobText, skill),
     );
 
+    // Skills mentioned in CV text that also appear in the job.
+    for (const skill of TECH_KEYWORDS) {
+      if (
+        includesSkill(jobText, skill) &&
+        includesSkill(candidateEvidence, skill) &&
+        !matchingSkills.some((owned) => normalize(owned) === normalize(skill))
+      ) {
+        matchingSkills.push(skill);
+      }
+    }
+
     const missingSkills = TECH_KEYWORDS.filter(
       (skill) =>
         includesSkill(jobText, skill) &&
-        !profileSkills.some((owned) => normalize(owned) === normalize(skill)),
+        !includesSkill(candidateEvidence, skill),
     ).slice(0, 8);
 
     const overlapRatio =

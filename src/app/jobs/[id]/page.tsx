@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/dashboard/app-header";
 import { MatchScore } from "@/components/dashboard/match-score";
+import { ApplyButton } from "@/components/jobs/apply-button";
 import { JobAnalysisPanel } from "@/components/jobs/job-analysis-panel";
 import { JobNotesForm } from "@/components/jobs/job-notes-form";
 import { StatusSelect } from "@/components/jobs/status-select";
@@ -49,42 +50,57 @@ async function JobDetailContent({
 
   return (
     <>
-      <div>
-        <Link
-          href="/"
-          className="text-sm font-medium text-slate-500 hover:text-slate-800"
-        >
-          ← Back to dashboard
-        </Link>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
-          {job.title}
-        </h2>
-        <p className="mt-1 text-slate-600">
-          {job.company} · {job.location} · {WORK_FORMAT_LABELS[job.workFormat]}
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Link
+            href="/"
+            className="text-sm font-medium text-slate-500 hover:text-slate-800"
+          >
+            ← Back to dashboard
+          </Link>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
+            {job.title}
+          </h2>
+          <p className="mt-1 text-slate-600">
+            {job.company} · {job.location} ·{" "}
+            {WORK_FORMAT_LABELS[job.workFormat]}
+          </p>
+        </div>
+        <ApplyButton href={job.sourceUrl} source={job.source} />
       </div>
 
-      <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Match score
-          </p>
-          <div className="mt-2">
-            <MatchScore score={job.matchScore} />
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Your AI match
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <MatchScore score={job.matchScore} />
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Heuristic fit vs your profile/CV — not a hiring probability.
+              {job.matchScore === null
+                ? " Run analysis below to generate a score."
+                : ""}
+            </p>
           </div>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Salary
-          </p>
-          <p className="mt-2 text-sm text-slate-800">{job.salary ?? "—"}</p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Status
-          </p>
-          <div className="mt-2">
-            <StatusSelect jobId={job.id} value={job.applicationStatus} />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Salary
+            </p>
+            <p className="mt-2 text-sm text-slate-800">{job.salary ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Your pipeline status
+            </p>
+            <div className="mt-2">
+              <StatusSelect jobId={job.id} value={job.applicationStatus} />
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Track where you are in your own process.
+            </p>
           </div>
         </div>
       </section>
@@ -97,16 +113,6 @@ async function JobDetailContent({
           {job.description}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-          <a
-            href={job.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-slate-900 underline"
-          >
-            {job.source === "remotive"
-              ? "Open on Remotive"
-              : "Open source listing"}
-          </a>
           {job.source === "remotive" ? (
             <span className="text-xs text-slate-400">
               Sourced from{" "}
@@ -118,8 +124,18 @@ async function JobDetailContent({
               >
                 Remotive
               </a>
+              . Apply opens their listing page.
             </span>
-          ) : null}
+          ) : (
+            <a
+              href={job.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-slate-900 underline"
+            >
+              Open source listing
+            </a>
+          )}
         </div>
       </section>
 

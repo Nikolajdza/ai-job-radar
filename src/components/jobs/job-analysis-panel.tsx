@@ -55,10 +55,13 @@ export function JobAnalysisPanel({
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">AI analysis</h3>
+          <h3 className="text-sm font-semibold text-slate-900">
+            Match this job to your profile
+          </h3>
           <p className="mt-1 text-sm text-slate-500">
-            Approximate heuristic match against your candidate profile. Not a
-            hiring probability.
+            Compares the listing to your profile fields and CV text. Approximate
+            heuristic — not a hiring probability. Add/update your CV under
+            Profile for better results.
           </p>
         </div>
         <button
@@ -72,8 +75,8 @@ export function JobAnalysisPanel({
           {pending
             ? "Analyzing…"
             : analysis
-              ? "Re-run analysis"
-              : "Analyze with AI"}
+              ? "Re-run match"
+              : "Get AI match"}
         </button>
       </div>
 

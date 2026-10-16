@@ -38,6 +38,7 @@ export function mapProfileRow(row: CandidateProfileRow): CandidateProfile {
     locationPreferences: row.locationPreferences ?? [],
     workFormatPreferences: (row.workFormatPreferences ?? []) as WorkFormat[],
     salaryExpectation: row.salaryExpectation,
+    cvText: row.cvText,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

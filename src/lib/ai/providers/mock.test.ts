@@ -15,6 +15,7 @@ const profile: CandidateProfile = {
   locationPreferences: ["Belgrade", "Remote (EU)"],
   workFormatPreferences: ["remote", "hybrid"],
   salaryExpectation: null,
+  cvText: "Production React and TypeScript experience with Next.js dashboards.",
   createdAt: "2026-10-01T00:00:00.000Z",
   updatedAt: "2026-10-01T00:00:00.000Z",
 };

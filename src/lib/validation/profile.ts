@@ -22,6 +22,13 @@ export const updateProfileSchema = z.object({
     .optional()
     .nullable()
     .transform((value) => (value ? value : null)),
+  cvText: z
+    .string()
+    .trim()
+    .max(50_000)
+    .optional()
+    .nullable()
+    .transform((value) => (value ? value : null)),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

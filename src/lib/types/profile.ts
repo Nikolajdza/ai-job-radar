@@ -11,6 +11,8 @@ export type CandidateProfile = {
   locationPreferences: string[];
   workFormatPreferences: WorkFormat[];
   salaryExpectation: string | null;
+  /** Optional plain-text CV used by AI analysis. */
+  cvText: string | null;
   createdAt: string;
   updatedAt: string;
 };

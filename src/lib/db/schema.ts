@@ -73,6 +73,8 @@ export const candidateProfiles = pgTable("candidate_profiles", {
     .notNull()
     .default([]),
   salaryExpectation: varchar("salary_expectation", { length: 100 }),
+  /** Plain-text CV content used as extra context for AI matching. */
+  cvText: text("cv_text"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

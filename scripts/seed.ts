@@ -32,6 +32,7 @@ async function seed() {
     locationPreferences: sampleProfile.locationPreferences,
     workFormatPreferences: sampleProfile.workFormatPreferences,
     salaryExpectation: sampleProfile.salaryExpectation,
+    cvText: sampleProfile.cvText,
   });
 
   console.log(`Inserting ${sampleJobs.length} jobs…`);

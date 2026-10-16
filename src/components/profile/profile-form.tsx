@@ -51,6 +51,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       ),
       workFormatPreferences,
       salaryExpectation: String(form.get("salaryExpectation") ?? "") || null,
+      cvText: String(form.get("cvText") ?? "") || null,
     };
 
     const response = await fetch("/api/profile", {
@@ -132,6 +133,23 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           defaultValue={listToLines(profile.locationPreferences)}
         />
       </div>
+
+      <label className="block text-sm">
+        <span className="mb-1.5 block font-medium text-slate-700">
+          CV text (optional)
+        </span>
+        <p className="mb-2 text-xs text-slate-500">
+          Paste your CV as plain text. AI match analysis will use this together
+          with the fields above. PDF upload can come later.
+        </p>
+        <textarea
+          name="cvText"
+          rows={10}
+          defaultValue={profile.cvText ?? ""}
+          placeholder="Paste CV content here…"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-300"
+        />
+      </label>
 
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-slate-700">

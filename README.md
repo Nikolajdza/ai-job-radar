@@ -6,11 +6,13 @@ Learning portfolio project — not a commercial SaaS product. The system never a
 
 ## Current status
 
-**MVP + Remotive sync**
+**MVP + Remotive sync + apply/match UX**
 
-- Search, chip filters, sorting, and summary stats
-- Sync remote software jobs from Remotive (free, no API key)
-- Vitest coverage for core domain logic
+- Search, chip filters, pagination, sorting
+- Sync remote jobs from Remotive (free, no API key)
+- Apply opens the real listing (no auto-apply)
+- Profile + CV text used by AI match analysis
+- Auth/sign-in postponed (single local profile)
 - Mock AI by default; optional OpenAI; local n8n automation
 
 ## Requirements

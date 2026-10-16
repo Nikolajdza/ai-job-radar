@@ -14,8 +14,9 @@ export default function ProfilePage() {
             Candidate profile
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            This profile is the input for future AI job analysis. Edit it here —
-            no code changes required.
+            Skills, preferences, and optional CV text feed AI match analysis.
+            Sign-in/auth can come later — this stays a single local profile for
+            now.
           </p>
         </div>
 

@@ -43,6 +43,7 @@ export async function updateCandidateProfile(
       locationPreferences: input.locationPreferences,
       workFormatPreferences: input.workFormatPreferences,
       salaryExpectation: input.salaryExpectation,
+      cvText: input.cvText,
       updatedAt: new Date(),
     })
     .where(eq(candidateProfiles.id, existing.id))

@@ -32,4 +32,17 @@ export const sampleProfile: UpdateProfileInput = {
   locationPreferences: ["Remote (EU)", "Hybrid (EU)", "Belgrade"],
   workFormatPreferences: ["remote", "hybrid"],
   salaryExpectation: "Competitive EU market rate",
+  cvText: `Nikola Buljčik
+Frontend Engineer
+
+Summary
+Frontend engineer with production experience in React, Next.js, and TypeScript. Comfortable owning UI architecture, integrating REST/GraphQL APIs, and shipping tested features.
+
+Skills
+React, Next.js, TypeScript, JavaScript, Tailwind CSS, Node.js, GraphQL, Jest, Playwright, PostgreSQL
+
+Experience
+- Built and maintained production web applications with React and Next.js
+- Collaborated with product and backend teams on feature delivery
+- Expanding into AI application development: structured LLM outputs, provider abstractions, and workflow automation`,
 };
