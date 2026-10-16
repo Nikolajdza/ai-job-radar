@@ -1,0 +1,98 @@
+import type { JobListing } from "@/lib/types/job";
+
+/**
+ * Static sample listings for Milestone 1.
+ * Replaced by PostgreSQL persistence in Milestone 2.
+ */
+export const sampleJobs: JobListing[] = [
+  {
+    id: "job-001",
+    title: "Senior Frontend Engineer",
+    company: "Northwind Labs",
+    location: "Berlin, Germany",
+    workFormat: "hybrid",
+    salary: "€75k–€95k",
+    description:
+      "Build and evolve our customer-facing React and Next.js applications. You will own UI architecture, design-system contributions, and collaboration with product and backend teams. Strong TypeScript, accessibility, and testing experience required.",
+    sourceUrl: "https://example.com/jobs/northwind-senior-frontend",
+    createdAt: "2026-10-12T09:00:00.000Z",
+    applicationStatus: "to_apply",
+    matchScore: 86,
+    saved: true,
+  },
+  {
+    id: "job-002",
+    title: "Full-Stack Engineer (TypeScript)",
+    company: "Harbor Analytics",
+    location: "Remote (EU)",
+    workFormat: "remote",
+    salary: "€70k–€90k",
+    description:
+      "Ship features across a Next.js frontend and Node.js API. Experience with PostgreSQL, REST design, and production observability is valued. AI product features are a growing part of the roadmap.",
+    sourceUrl: "https://example.com/jobs/harbor-fullstack",
+    createdAt: "2026-10-13T14:30:00.000Z",
+    applicationStatus: "interesting",
+    matchScore: 78,
+    saved: true,
+  },
+  {
+    id: "job-003",
+    title: "AI Application Engineer",
+    company: "Lumen Workflow",
+    location: "Amsterdam, Netherlands",
+    workFormat: "hybrid",
+    salary: "€80k–€100k",
+    description:
+      "Design and implement LLM-powered product features with structured outputs, evaluation hooks, and safe tool use. Frontend experience with React is a plus; production backend and API design experience is required.",
+    sourceUrl: "https://example.com/jobs/lumen-ai-engineer",
+    createdAt: "2026-10-14T08:15:00.000Z",
+    applicationStatus: "applied",
+    matchScore: 72,
+    saved: true,
+  },
+  {
+    id: "job-004",
+    title: "React Engineer",
+    company: "Pixel & Co",
+    location: "Zagreb, Croatia",
+    workFormat: "onsite",
+    salary: null,
+    description:
+      "Join a product team building a B2B dashboard. Focus on React, TypeScript, and Tailwind. Collaboration with designers and ownership of accessible UI patterns are central to the role.",
+    sourceUrl: "https://example.com/jobs/pixel-react",
+    createdAt: "2026-10-15T11:00:00.000Z",
+    applicationStatus: null,
+    matchScore: null,
+    saved: false,
+  },
+  {
+    id: "job-005",
+    title: "Platform Engineer",
+    company: "Cascade Cloud",
+    location: "Remote (EMEA)",
+    workFormat: "remote",
+    salary: "€85k–€110k",
+    description:
+      "Own CI/CD, infrastructure-as-code, and developer experience for a multi-service platform. Kubernetes, Terraform, and observability tooling experience expected. Frontend work is occasional only.",
+    sourceUrl: "https://example.com/jobs/cascade-platform",
+    createdAt: "2026-10-10T16:45:00.000Z",
+    applicationStatus: "rejected",
+    matchScore: 41,
+    saved: true,
+  },
+  {
+    id: "job-006",
+    title: "Staff Frontend Engineer",
+    company: "Orbit Pay",
+    location: "London, UK",
+    workFormat: "hybrid",
+    salary: "£90k–£120k",
+    description:
+      "Lead frontend architecture for a fintech product. Deep React and TypeScript expertise, mentoring, and experience with complex state and performance work. GraphQL and design-system leadership preferred.",
+    sourceUrl: "https://example.com/jobs/orbit-staff-frontend",
+    createdAt: "2026-10-11T10:20:00.000Z",
+    applicationStatus: "interview",
+    matchScore: 81,
+    saved: true,
+  },
+];
